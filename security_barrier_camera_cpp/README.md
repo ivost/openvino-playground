@@ -51,11 +51,18 @@ Options:
     -h                         Print a usage message.
     -i "<path1>" "<path2>"     Required for video or image files input. Path to video or image files.
     -m "<path>"                Required. Path to the Vehicle and License Plate Detection model .xml file.
+    -tag                       Required for HDDL plugin only. If not set, the performance on Intel(R) Movidius(TM) X VPUs will not be optimal. 
+                               Running each network on a set of Intel(R) Movidius(TM) X VPUs with a specific tag. 
+                               You must specify the number of VPUs for each network in the hddl_service.config file. 
+                               Refer to the corresponding README file for more information.
+    -nc                        Required for web camera input. Maximum number of processed camera inputs (web cameras).
+    -l "<absolute_path>"       Required for CPU custom layers. Absolute path to a shared library with the kernels implementation.
+     OR
+    -c "<absolute_path>"       Required for GPU custom kernels. Absolute path to an .xml file with the kernels description.
+
+
     -m_va "<path>"             Optional. Path to the Vehicle Attributes model .xml file.
     -m_lpr "<path>"            Optional. Path to the License Plate Recognition model .xml file.
-      -l "<absolute_path>"     Required for CPU custom layers. Absolute path to a shared library with the kernels implementation.
-          Or
-      -c "<absolute_path>"     Required for GPU custom kernels. Absolute path to an .xml file with the kernels description.
     -d "<device>"              Optional. Specify the target device for Vehicle Detection (the list of available devices is shown below). Default value is CPU. Use "-d HETERO:<comma-separated_devices_list>" format to specify HETERO plugin. The application looks for a suitable plugin for the specified device.
     -d_va "<device>"           Optional. Specify the target device for Vehicle Attributes (the list of available devices is shown below). Default value is CPU. Use "-d HETERO:<comma-separated_devices_list>" format to specify HETERO plugin. The application looks for a suitable plugin for the specified device.
     -d_lpr "<device>"          Optional. Specify the target device for License Plate Recognition (the list of available devices is shown below). Default value is CPU. Use "-d HETERO:<comma-separated_devices_list>" format to specify HETERO plugin. The application looks for a suitable plugin for the specified device.
@@ -65,7 +72,6 @@ Options:
     -no_show                   Optional. Do not show processed video.
     -auto_resize               Optional. Enable resizable input with support of ROI crop and auto resize.
     -nireq                     Optional. Number of infer requests. 0 sets the number of infer requests equal to the number of inputs.
-    -nc                        Required for web camera input. Maximum number of processed camera inputs (web cameras).
     -fpga_device_ids           Optional. Specify FPGA device IDs (0,1,n).
     -loop_video                Optional. Enable playing video on a loop.
     -n_iqs                     Optional. Number of allocated frames. It is a multiplier of the number of inputs.
@@ -73,7 +79,6 @@ Options:
     -fps                       Optional. Set the playback speed not faster than the specified FPS. 0 removes the upper bound.
     -n_wt                      Optional. Set the number of threads including the main thread a Worker class will use.
     -display_resolution        Optional. Specify the maximum output window resolution.
-    -tag                       Required for HDDL plugin only. If not set, the performance on Intel(R) Movidius(TM) X VPUs will not be optimal. Running each network on a set of Intel(R) Movidius(TM) X VPUs with a specific tag. You must specify the number of VPUs for each network in the hddl_service.config file. Refer to the corresponding README file for more information.
     -nstreams "<integer>"      Optional. Number of streams to use for inference on the CPU or/and GPU in throughput mode (for HETERO and MULTI device cases use format <device1>:<nstreams1>,<device2>:<nstreams2> or just <nstreams>)
     -nthreads "<integer>"      Optional. Number of threads to use for inference on the CPU (including HETERO and MULTI cases).
     -u                         Optional. List of monitors to show initially.
@@ -81,9 +86,11 @@ Options:
 
 Running the application with an empty list of options yields an error message.
 
-To run the demo, you can use public or pre-trained models. To download the pre-trained models, use the OpenVINO [Model Downloader](../../tools/downloader/README.md). The list of models supported by the demo is in [models.lst](./models.lst).
+To run the demo, you can use public or pre-trained models. To download the pre-trained models, use the OpenVINO [Model Downloader](../../tools/downloader/README.md). 
+The list of models supported by the demo is in [models.lst](./models.lst).
 
-> **NOTE**: Before running the demo with a trained model, make sure the model is converted to the Inference Engine format (\*.xml + \*.bin) using the [Model Optimizer tool](https://docs.openvinotoolkit.org/latest/_docs_MO_DG_Deep_Learning_Model_Optimizer_DevGuide.html).
+> **NOTE**: Before running the demo with a trained model, make sure the model is converted to the Inference Engine format (\*.xml + \*.bin) 
+> using the [Model Optimizer tool](https://docs.openvinotoolkit.org/latest/_docs_MO_DG_Deep_Learning_Model_Optimizer_DevGuide.html).
 
 For example, to do inference on a GPU with the OpenVINO toolkit pre-trained models, run the following command:
 
@@ -107,7 +114,8 @@ For example, to run the sample on one Intel® Vision Accelerator Design with Int
 ./security_barrier_camera_demo -i <path_to_video>/inputVideo.mp4 -m <path_to_model>/vehicle-license-plate-detection-barrier-0106.xml -m_va <path_to_model>/vehicle-attributes-recognition-barrier-0039.xml -m_lpr <path_to_model>/license-plate-recognition-barrier-0001.xml -d HDDL -d_va HDDL -d_lpr HDDL -n_iqs 10 -n_wt 4 -nireq 10
 ```
 
-> **NOTE**: For the `-tag` option (HDDL plugin only), you must specify the number of VPUs for each network in the `hddl_service.config` file located in the `<INSTALL_DIR>/deployment_tools/inference_engine/external/hddl/config/` directory using the following tags:
+> **NOTE**: For the `-tag` option (HDDL plugin only), you must specify the number of VPUs for each network in the `hddl_service.config` file 
+> located in the `<INSTALL_DIR>/deployment_tools/inference_engine/external/hddl/config/` directory using the following tags:
 > * `tagDetect` for the Vehicle and License Plate Detection network
 > * `tagAttr` for the Vehicle Attributes Recognition network
 > * `tagLPR` for the License Plate Recognition network
@@ -120,7 +128,6 @@ For example, to run the sample on one Intel® Vision Accelerator Design with Int
 > }
 > ```
 
-
 ### Optimization Hints for Heterogeneous Scenarios with FPGA
 
 If you build the Inference Engine with the OMP, you can use the following parameters for Heterogeneous scenarios:
@@ -132,13 +139,22 @@ If you build the Inference Engine with the OMP, you can use the following parame
 
 The demo uses OpenCV to display the resulting frame with detections rendered as bounding boxes and text.
 
-> **NOTE**: On VPU devices (Intel® Movidius™ Neural Compute Stick, Intel® Neural Compute Stick 2, and Intel® Vision Accelerator Design with Intel® Movidius™ VPUs) this demo has been tested on the following Model Downloader available topologies:
+> **NOTE**: On VPU devices (Intel® Movidius™ Neural Compute Stick, Intel® Neural Compute Stick 2, and Intel® Vision Accelerator Design with Intel® Movidius™ VPUs) 
+> this demo has been tested on the following Model Downloader available topologies:
 >* `license-plate-recognition-barrier-0001`
 >* `vehicle-attributes-recognition-barrier-0039`
 >* `vehicle-license-plate-detection-barrier-0106`
 > Other models may produce unexpected results on these devices.
 
 ## See Also
-* [Using Open Model Zoo demos](../README.md)
 * [Model Optimizer](https://docs.openvinotoolkit.org/latest/_docs_MO_DG_Deep_Learning_Model_Optimizer_DevGuide.html)
-* [Model Downloader](../../tools/downloader/README.md)
+
+```sh
+/home/ivo/inference_engine_demos_build/intel64/Release/security_barrier_camera_demo \
+  -no_show -d CPU -d_va CPU -d_lpr CPU \
+  -i /opt/intel/openvino_2021/deployment_tools/demo/car_1.bmp \
+  -m /home/ivo/openvino_models/ir/intel/vehicle-license-plate-detection-barrier-0106/FP16/vehicle-license-plate-detection-barrier-0106.xml \
+  -m_lpr /home/ivo/openvino_models/ir/intel/license-plate-recognition-barrier-0001/FP16/license-plate-recognition-barrier-0001.xml \
+  -m_va /home/ivo/openvino_models/ir/intel/vehicle-attributes-recognition-barrier-0039/FP16/vehicle-attributes-recognition-barrier-0039.xml
+
+```
