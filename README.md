@@ -9,4 +9,4 @@ assuming they are in $HOME/data
 
 Classification example
 
-scripts/classify.sh
+./scripts/classify.sh
