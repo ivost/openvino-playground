@@ -29,7 +29,7 @@ Options:
                         Required. Path to an .xml file with a trained model.
   -i INPUT [INPUT ...], --input INPUT [INPUT ...]
                         Required. Path to a folder with images or path to an
-                        image files
+                        image file
   -l CPU_EXTENSION, --cpu_extension CPU_EXTENSION
                         Optional. Required for CPU custom layers. MKLDNN (CPU)-targeted custom layers.
                         Absolute path to a shared library with the kernels
@@ -71,3 +71,15 @@ For example, to get the top-5 results on GPU, run the following command:
 * [Using Inference Engine Samples](../../../../../docs/IE_DG/Samples_Overview.md)
 * [Model Optimizer tool](../../../../../docs/MO_DG/Deep_Learning_Model_Optimizer_DevGuide.md)
 * [Model Downloader](@ref omz_tools_downloader_README)
+
+
+```shell
+INP=$HOME/data/imagen/
+INP=$HOME/data/imagen/n01443537_5048_goldfish.jpg
+MODEL=models/ir/public/squeezenet1.1/FP16/squeezenet1.1
+python3 inference_engine/samples/python/hello_classification/hello_classification.py \
+  --input $INP \
+  --model ${MODEL}.xml \
+  --labels ${MODEL}.labels
+
+```
