@@ -1,0 +1,2 @@
+# openvino-playground
+learning openvino
