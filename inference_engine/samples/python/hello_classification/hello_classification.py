@@ -128,6 +128,8 @@ def main():
 
     # Start sync inference
     log.info("Starting inference in synchronous mode")
+    #do_process(exec_net)
+
     start_time = time.time()
     res = exec_net.infer(inputs={input_blob: images})
     if not args.quiet:
@@ -136,6 +138,12 @@ def main():
     # print("elapsed time", time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
     log.info("elapsed time: {:.3} sec".format(elapsed_time))
     log.info("     average: {:.3} ms".format(1000 * elapsed_time / n))
+
+# todo
+# @timeit
+# def do_process(**kwargs):
+#         name = kw.get('log_name', method.__name__.upper())
+#    return exec_net.infer(inputs={input_blob: images})
 
 
 def show_results(args, res, files, n, out_blob):
