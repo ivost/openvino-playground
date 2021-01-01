@@ -65,7 +65,7 @@ def build_argparser():
                       default="CPU", type=str)
     args.add_argument("-s", "--start", help="Optional. Start index (when directory)", default=0, type=int)
     args.add_argument("-n", "--number", help="Optional. Max number of images to process", default=10, type=int)
-    args.add_argument("-q", "--quiet", help="Optional. Quiet mode - don't write to the output", default=False, type=int)
+    args.add_argument("-q", "--quiet", help="Optional. Quiet mode - don't write to the output", default=False, type=bool)
     args.add_argument("-tn", "--top", help="Optional. Number of top results", default=3, type=int)
     args.add_argument('-h', '--help', action='help', default=SUPPRESS, help='Show this help message and exit.')
 
@@ -132,7 +132,7 @@ def main():
     elapsed_time = time.time() - start_time
     #print("elapsed time", time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
     log.info("elapsed time: {:.3} sec".format(elapsed_time))
-    log.info("     average: {:.2} ms".format(1000*elapsed_time/n))
+    log.info("     average: {:.3} ms".format(1000*elapsed_time/n))
 
 
 def show_results(args, res, files, n, out_blob):
