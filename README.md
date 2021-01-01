@@ -7,8 +7,7 @@ install pyenv
 in .bashrc
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
-
-
+---
 pyenv --version
 pyenv install 3.7.9
 pyenv virtualenv 3.7.9 venv-3.7
@@ -21,15 +20,13 @@ Successfully installed pip-20.3.3
 
 pip install openvino
 
-Successfully installed numpy-1.19.4 openvino-2021.2
-
-?? on mac ??
-export DYLD_LIBRARY_PATH=$HOME/.pyenv/versions/3.7.9/lib:${DYLD_LIBRARY_PATH}
-
-
 pyenv local venv-3.7
 
 python3 -c "import openvino"
+
+open -na "PyCharm.app"
+
+Make sure to change working dir in run config to openvino-playground
 
 ---
 
@@ -37,9 +34,13 @@ sudo cp -rv /opt/intel/openvino_2021/deployment_tools/inference_engine/lib/intel
 
 Get imagenet samples
 
+MD ~/datap
 git clone https://github.com/ajschumacher/imagen
+cd imagen/
+mv imagen/* .
+rmdir imagen/
 
-assuming they are in $HOME/data
+assuming jpg files are in $HOME/data/imagen
 
 Classification example
 

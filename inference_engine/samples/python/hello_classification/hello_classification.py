@@ -40,12 +40,12 @@ def build_argparser():
     args = parser.add_argument_group('Options')
 
     args.add_argument("-i", "--input", help="Required. Path to a folder with images or path to an image files",
-                      #default="images",
-                      default="/home/ivo/data/imagen",
-                      #default="images/cat05.jpg",
-                      #default="images/cat09.jpg",
-                      #default="images/duo.jpg",
-                      #default="images/duo10.jpg",
+                      # default="images",
+                      default=os.environ['HOME'] + "/data/imagen",
+                      # default="images/cat05.jpg",
+                      # default="images/cat09.jpg",
+                      # default="images/duo.jpg",
+                      # default="images/duo10.jpg",
                       type=str)
     args.add_argument("-m", "--model", help="Required. Path to an .xml or .onnx file with a trained model.",
                       default="models/ir/public/squeezenet1.1/FP16/squeezenet1.1.xml",
@@ -65,7 +65,8 @@ def build_argparser():
                       default="CPU", type=str)
     args.add_argument("-s", "--start", help="Optional. Start index (when directory)", default=0, type=int)
     args.add_argument("-n", "--number", help="Optional. Max number of images to process", default=10, type=int)
-    args.add_argument("-q", "--quiet", help="Optional. Quiet mode - don't write to the output", default=False, type=bool)
+    args.add_argument("-q", "--quiet", help="Optional. Quiet mode - don't write to the output", default=False,
+                      type=bool)
     args.add_argument("-tn", "--top", help="Optional. Number of top results", default=3, type=int)
     args.add_argument('-h', '--help', action='help', default=SUPPRESS, help='Show this help message and exit.')
 
@@ -95,12 +96,11 @@ def main():
     assert len(net.outputs) == 1, "Sample supports only single output topologies"
 
     path = os.path.abspath(args.input)
+    files = [path]
     if os.path.isdir(path):
         files = [join(path, f) for f in listdir(path) if isfile(join(path, f))]
         files.sort()
-        files = files[args.start: args.start+args.number]
-    elif os.path.isfile(path):
-        files = [path]
+        files = files[args.start: args.start + args.number]
 
     log.info("Preparing input blobs")
     input_blob = next(iter(net.input_info))
@@ -109,12 +109,15 @@ def main():
 
     # Read and pre-process input images
     n, c, h, w = net.input_info[input_blob].input_data.shape
-    log.info("Batch size is {}".format(n))
+    log.info("Batch size: {}".format(n))
     images = np.ndarray(shape=(n, c, h, w))
     for i in range(n):
         image = cv2.imread(files[i])
+        if image is None:
+            log.error("File {} not found".format(files[i]))
+            continue
         if image.shape[:-1] != (h, w):
-            #log.info("Image {} is resized from {} to {}".format(files[i], image.shape[:-1], (h, w)))
+            # log.info("Image {} is resized from {} to {}".format(files[i], image.shape[:-1], (h, w)))
             image = cv2.resize(image, (w, h))
         image = image.transpose((2, 0, 1))  # Change data layout from HWC to CHW
         images[i] = image
@@ -130,9 +133,9 @@ def main():
     if not args.quiet:
         show_results(args, res, files, n, out_blob)
     elapsed_time = time.time() - start_time
-    #print("elapsed time", time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
+    # print("elapsed time", time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
     log.info("elapsed time: {:.3} sec".format(elapsed_time))
-    log.info("     average: {:.3} ms".format(1000*elapsed_time/n))
+    log.info("     average: {:.3} ms".format(1000 * elapsed_time / n))
 
 
 def show_results(args, res, files, n, out_blob):
@@ -161,6 +164,7 @@ def show_results(args, res, files, n, out_blob):
                 break
             det_label = labels_map[id] if labels_map else "{}".format(id)
             print("{:.2f} {}".format(probs[id], det_label))
+
 
 if __name__ == '__main__':
     main()
