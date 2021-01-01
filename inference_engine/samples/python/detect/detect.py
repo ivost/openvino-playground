@@ -57,7 +57,7 @@ def main():
 
     # ---1. Read a model in OpenVINO Intermediate Representation (.xml and .bin files) or ONNX (.onnx file) format ---
     model = args.model
-    log.info(f"Loading network:\n\t{model}")
+    log.info(f"Loading network: {model}")
     net = ie.read_network(model=model)
     func = ng.function_from_cnn(net)
     ops = func.get_ordered_ops()

@@ -2,8 +2,26 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="aa91dfaf-09a0-4e59-9b57-dad2fa3c1b5b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/inference_engine/samples/python/common/util.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inference_engine/samples/python/hello_classification/hello_classification.py" beforeDir="false" afterPath="$PROJECT_DIR$/inference_engine/samples/python/hello_classification/hello_classification.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/inference_engine/samples/python/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/inference_engine/samples/python/classify/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/inference_engine/samples/python/classify/args.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/inference_engine/samples/python/classify/main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/inference_engine/samples/python/common/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/inference_engine/samples/python/detect/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/inference_engine/samples/python/device/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inference_engine/samples/cpp/thirdparty/gflags/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inference_engine/samples/cpp/thirdparty/gflags/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inference_engine/samples/cpp/thirdparty/gflags/test/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inference_engine/samples/cpp/thirdparty/gflags/test/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inference_engine/samples/python/classification_sample_async/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/inference_engine/samples/python/attic/classification_sample_async/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inference_engine/samples/python/classification_sample_async/classification_sample_async.py" beforeDir="false" afterPath="$PROJECT_DIR$/inference_engine/samples/python/attic/classification_sample_async/classification_sample_async.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inference_engine/samples/python/common/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/inference_engine/samples/python/common/util.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inference_engine/samples/python/hello_classification/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/inference_engine/samples/python/classify/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inference_engine/samples/python/hello_classification/hello_classification.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/inference_engine/samples/python/hello_query_device/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/inference_engine/samples/python/device/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inference_engine/samples/python/hello_query_device/hello_query_device.py" beforeDir="false" afterPath="$PROJECT_DIR$/inference_engine/samples/python/device/query.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inference_engine/samples/python/object_detection_ssd/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/inference_engine/samples/python/detect/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inference_engine/samples/python/object_detection_ssd/detect.py" beforeDir="false" afterPath="$PROJECT_DIR$/inference_engine/samples/python/detect/detect.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -32,7 +50,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/inference_engine/samples/python" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -42,12 +60,19 @@
     <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/inference_engine/samples/python" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/inference_engine/samples/python/detect" />
+      <recent name="$PROJECT_DIR$/inference_engine/samples/python/classify" />
+      <recent name="$PROJECT_DIR$/inference_engine/samples/python/atic" />
+      <recent name="$PROJECT_DIR$/inference_engine/samples/python/device" />
+      <recent name="$PROJECT_DIR$/inference_engine/samples/python/common" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.hello_classification">
-    <configuration name="hello_classification" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python.main">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="openvino-playground" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -60,7 +85,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/inference_engine/samples/python/hello_classification/hello_classification.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/inference_engine/samples/python/classify/main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -69,7 +94,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="hello_query_device" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="query" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="openvino-playground" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -82,7 +107,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/inference_engine/samples/python/hello_query_device/hello_query_device.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/inference_engine/samples/python/device/query.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -92,12 +117,12 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.hello_classification" />
       <item itemvalue="Python.hello_query_device" />
+      <item itemvalue="Python.main" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.hello_classification" />
+        <item itemvalue="Python.main" />
         <item itemvalue="Python.hello_query_device" />
       </list>
     </recent_temporary>
@@ -113,7 +138,7 @@
       <workItem from="1609528879253" duration="244000" />
       <workItem from="1609529141663" duration="410000" />
       <workItem from="1609529576649" duration="41000" />
-      <workItem from="1609530892753" duration="2382000" />
+      <workItem from="1609530892753" duration="10541000" />
     </task>
     <task id="LOCAL-00001" summary="on mac">
       <created>1609532384394</created>
@@ -122,7 +147,14 @@
       <option name="project" value="LOCAL" />
       <updated>1609532384394</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="on mac">
+      <created>1609533383130</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1609533383130</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -132,24 +164,8 @@
     <MESSAGE value="on mac" />
     <option name="LAST_COMMIT_MESSAGE" value="on mac" />
   </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/inference_engine/samples/python/hello_classification/hello_classification.py</url>
-          <line>91</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/inference_engine/samples/python/hello_classification/hello_classification.py</url>
-          <line>97</line>
-          <option name="timeStamp" value="3" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
-  </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/openvino_playground$hello_classification.coverage" NAME="hello_classification Coverage Results" MODIFIED="1609533228506" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/openvino_playground$hello_classification.coverage" NAME="main Coverage Results" MODIFIED="1609545103437" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/openvino_playground$hello_query_device.coverage" NAME="hello_query_device Coverage Results" MODIFIED="1609529248354" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/inference_engine/samples/python/hello_query_device" />
   </component>
 </project>

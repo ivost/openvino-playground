@@ -46,17 +46,20 @@ Classification example
 
 ./scripts/classify.sh
 
-
 Performance:
 
-on fast i-9 CPU (12 cores): 
+on fast i7 3 GHz
 2.6 ms 
+
+on Mac - Core i7 2.6 GHz
+2.7 ms
 
 on Vizi: Atom(TM) Processor E3940 @ 1.60GHz 4 cores
 27 ms ~10X slower
 
-with HDDL
-9 ms - ~3X faster than CPU
+with HDDL / Myriad
+9 ms - ~3X faster than Atom - still 3X slower than i7
+
 
 
 
