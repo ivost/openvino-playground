@@ -65,7 +65,7 @@ def build_argparser():
                       default="CPU", type=str)
     args.add_argument("-s", "--start", help="Optional. Start index (when directory)", default=0, type=int)
     args.add_argument("-n", "--number", help="Optional. Max number of images to process", default=10, type=int)
-    args.add_argument("-q", "--quiet", help="Optional. Quiet mode - don't write to the output", default=True, type=int)
+    args.add_argument("-q", "--quiet", help="Optional. Quiet mode - don't write to the output", default=False, type=int)
     args.add_argument("-tn", "--top", help="Optional. Number of top results", default=3, type=int)
     args.add_argument('-h', '--help', action='help', default=SUPPRESS, help='Show this help message and exit.')
 
@@ -97,6 +97,7 @@ def main():
     path = os.path.abspath(args.input)
     if os.path.isdir(path):
         files = [join(path, f) for f in listdir(path) if isfile(join(path, f))]
+        files.sort()
         files = files[args.start: args.start+args.number]
     elif os.path.isfile(path):
         files = [path]
