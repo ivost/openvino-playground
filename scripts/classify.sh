@@ -21,6 +21,6 @@ python3 ${D}/inference_engine/samples/python/hello_classification/hello_classifi
   --model $MODEL.xml \
   --labels $MODEL.labels \
   --device HDDL \
-  -n 100
+  -n 1000
 
 # max batch size with HDDL is 100  
