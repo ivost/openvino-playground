@@ -11,7 +11,7 @@ D=$DIR/..
 # INP=$D/images/dog03.jpeg
 
 
-MODEL=$D/models/ir/public/ssdlite_mobilenet_v2/ssdlite_mobilenet_v2.xml
+MODEL=$D/models/ssdlite_mobilenet_v2/ssdlite_mobilenet_v2.xml
 
 if [[ ! -f  $MODEL ]]; then 
     echo -e "Model $MODEL not found"
@@ -20,7 +20,7 @@ fi
 
 for file in "$D/images"/918-02.jpg; do
   echo "$file"
-  python3 ${D}/inference_engine/samples/python/object_detection_ssd/detect.py \
+  python3 ${D}/python/detect/detect.py \
     --model $MODEL \
     --device CPU \
     --input $file

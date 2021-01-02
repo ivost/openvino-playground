@@ -1,15 +1,24 @@
 # openvino-playground
 learning openvino
 
-needs python 3.6 or 3.7
+needs python 3.7
+sudo apt install python3.7
+
 install pyenv
+https://github.com/pyenv/pyenv-installer
+
+curl https://pyenv.run | bash
+
+
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
 
 in .bashrc
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 ---
 pyenv --version
-pyenv install 3.7.9
+# pyenv install 3.7.9
 pyenv virtualenv 3.7.9 venv-3.7
 
 pyenv local venv-3.7 && python3 -V
