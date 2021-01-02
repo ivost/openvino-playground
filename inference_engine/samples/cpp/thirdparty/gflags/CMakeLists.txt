@@ -611,7 +611,7 @@ if (BUILD_PACKAGING)
   # some package generators (e.g., PackageMaker) do not allow .md extension
   configure_file ("${CMAKE_CURRENT_LIST_DIR}/README.md" "${CMAKE_CURRENT_BINARY_DIR}/README.txt" COPYONLY)
 
-  # common package information
+  # common1 package information
   set (CPACK_PACKAGE_VENDOR              "Andreas Schuh")
   set (CPACK_PACKAGE_CONTACT             "google-gflags@googlegroups.com")
   set (CPACK_PACKAGE_NAME                "${PACKAGE_NAME}")

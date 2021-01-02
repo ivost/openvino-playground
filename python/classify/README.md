@@ -77,7 +77,7 @@ For example, to get the top-5 results on GPU, run the following command:
 INP=$HOME/data/imagen/
 INP=$HOME/data/imagen/n01443537_5048_goldfish.jpg
 MODEL=models/ir/public/squeezenet1.1/FP16/squeezenet1.1
-python3 inference_engine/samples/python/hello_classification/hello_classification.py \
+python3 inference_engine/samples/python/hello_classification/main.py \
   --input $INP \
   --model ${MODEL}.xml \
   --labels ${MODEL}.labels

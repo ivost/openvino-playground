@@ -4,23 +4,30 @@ SCRIPT=`realpath $0`
 DIR=`dirname $SCRIPT`
 D=$DIR/..
 
-INP=/home/ivo/data/imagen
-#INP=$HOME/data/imagen/n01443537_5048_goldfish.jpg
-#INP=$D/images/duo01.jpeg
-#INP=$D/images/cat01.jpeg
-#INP=$D/images/dog03.jpeg
+#pip install -r requirements.txt
 
-MODEL=$D/models/ir/public/squeezenet1.1/FP16/squeezenet1.1
+export PYTHONPATH=$D:$PYTHONPATH
+export INPUT=$HOME/data/imagen
+# interesting case
+#export INPUT=$D/images/918-02.jpg
+export MODEL=$D/models/squeezenet1.1/FP16/squeezenet1.1.xml
+export LABELS=$D/models/squeezenet1.1/FP16/squeezenet1.1.labels
+
+if [[ ! -d  $INPUT ]]; then 
+    echo -e "Input dir $INPUT not found"
+    exit 1
+fi
+if [[ ! -f  $MODEL ]]; then 
+    echo -e "Model $MODEL not found"
+    exit 1
+fi
+
+python3 $D/python/classify/main.py -h
 
 
-#ls -al "${INP}"
-#  --quiet True \
+python3 $D/python/classify/main.py \
+  -n 100 \
+  --device CPU
+#  --quiet \
 
-python3 ${D}/inference_engine/samples/python/hello_classification/hello_classification.py \
-  --input $INP \
-  --model $MODEL.xml \
-  --labels $MODEL.labels \
-  --device HDDL \
-  -n 1000
-
-# max batch size with HDDL is 100  
+# max batch size with HDDL is 100

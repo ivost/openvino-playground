@@ -10,7 +10,7 @@ set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
 set (GFLAGS_FLAGFILES_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # ----------------------------------------------------------------------------
-# common include directories and link libraries
+# common1 include directories and link libraries
 include_directories ("${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories ("${gflags_SOURCE_DIR}/src")
 include_directories ("${gflags_BINARY_DIR}/include")
