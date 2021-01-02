@@ -22,17 +22,21 @@ def parse_args(name):
                         help="Optional. Target device: CPU, GPU, FPGA, HDDL, MYRIAD or HETERO.",
                         default="CPU", type=str)
     parser.add_argument("-s", "--start",
-                        help="Optional. Start index (when directory)", default=0, type=int)
+                        help="Optional. Start index (when directory)",
+                        default=0, type=int)
     parser.add_argument("-n", "--number",
-                        help="Optional. Max number of images to process", default=10, type=int)
+                        help="Optional. Max number of images to process",
+                        default=10, type=int)
     parser.add_argument("-q", "--quiet",
-                        help="Optional. Quiet mode - don't write to the output", default=False,
-                        type=bool)
+                        help="Optional. If specified will show only perf",
+                        action='store_true',
+                        default=False)
     parser.add_argument("-tn", "--top", help="Optional. Number of top results", default=3, type=int)
     #parser.add_argument('-h', '--help', action='help', default=SUPPRESS, help='Show this help message and exit.')
     args = parser.parse_args()
     if args.number > 100:
         args.number = 100
+    print("quiet", args.quiet)
     return args
 
 # todo

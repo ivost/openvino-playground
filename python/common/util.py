@@ -1,11 +1,9 @@
-import time
 import logging as log
 import os
-import sys
 import time
-from argparse import ArgumentParser, SUPPRESS
 from os import listdir
 from os.path import isfile, join
+
 import cv2
 import numpy as np
 
@@ -25,27 +23,36 @@ def count_images(args):
             break
         if isfile(join(path, f)):
             count += 1
-    print("image count", count)
+    #print("image count", count)
     return count
 
 
 def load_images(args):
     path = os.path.abspath(args.input)
-    files = [path]
+    files = []
+    count = 0
     if os.path.isdir(path):
         print("loading images from", path)
-        files = [join(path, f) for f in listdir(path) if isfile(join(path, f))]
-        #files.sort()
-        files = files[args.start: args.start + args.count]
+        for f in listdir(path):
+            if count == args.count:
+                break
+            if isfile(join(path, f)):
+                count += 1
+                files.append(join(path, f))
+    else:
+        files.append(path)
+    assert args.count == count
     args.files = files
+    # print(args.files)
     images = np.ndarray(shape=(args.count, args.c, args.h, args.w))
     for i in range(args.count):
+        # print(files[i])
         image = cv2.imread(files[i])
         if image is None:
-            log.error("File {} not found".format(files[i]))
+            log.error("File {} {} not found".format(i, files[i]))
             continue
         if image.shape[:-1] != (args.h, args.w):
-            # log.info("Image {} is resized from {} to {}".format(files[i], image.shape[:-1], (h, w)))
+            # log.debug("Image {} is resized from {} to {}".format(files[i], image.shape[:-1], (args.h, args.w)))
             image = cv2.resize(image, (args.w, args.h))
         image = image.transpose((2, 0, 1))  # Change data layout from HWC to CHW
         images[i] = image
@@ -64,3 +71,6 @@ def timeit(method):
             print('%r  %6.2f ms' % \
                   (method.__name__, (te - ts) * 1000))
         return result
+
+        #files = [join(path, f) for f in listdir(path) if isfile(join(path, f))]
+        #files = files[args.start: args.start + args.count]

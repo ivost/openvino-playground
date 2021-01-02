@@ -19,6 +19,7 @@ def main():
 
     # Read and pre-process input images
     images = util.load_images(args)
+    log.info("{} images".format(len(images)))
 
     # Loading model to the plugin
     network = engine.load_network(args.net, args.device)
@@ -30,8 +31,8 @@ def main():
     elapsed_time = time.time() - start_time
     if not args.quiet:
         show_results(args, res)
-        log.info("elapsed time: {:.3} sec".format(elapsed_time))
-        log.info("     average: {:.3} ms".format(1000 * elapsed_time / args.count))
+    log.info("elapsed time: {:.3} sec".format(elapsed_time))
+    log.info("     average: {:.3} ms".format(1000 * elapsed_time / args.count))
 
 
 def init():
@@ -59,7 +60,8 @@ def init_engine(args):
 
 
 def show_results(args, result):
-    min_prob = 0.1
+    # todo: add arg
+    min_prob = 0.25
     result = result[args.out_blob]
 
     if args.labels:
@@ -71,12 +73,16 @@ def show_results(args, result):
     for i, probs in enumerate(result):
         probs = np.squeeze(probs)
         top_ind = np.argsort(probs)[-args.top:][::-1]
-        print("Image {}/{} - {}".format(i + 1, args.count, args.files[i]))
+        print("\nImage {}/{} - {}".format(i + 1, args.count, args.files[i]))
+        count = 0
         for id in top_ind:
             if probs[id] < min_prob:
                 break
-            det_label = labels_map[id] if labels_map else "{}".format(id)
-            print("{:.2f} {}".format(probs[id], det_label))
+            label = labels_map[id] if labels_map else "{}".format(id)
+            print("{:4.1%} {} [{}]".format(probs[id], label, id))
+            count += 1
+        if count == 0:
+            print("--")
 
 
 if __name__ == '__main__':
