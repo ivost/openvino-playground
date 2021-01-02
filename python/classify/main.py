@@ -6,8 +6,8 @@ import time
 import numpy as np
 from openvino.inference_engine import IECore
 
-from python.classify.args import parse_args
 from python.common import util
+from python.common.args import parse_args
 
 
 def main():
@@ -21,7 +21,7 @@ def main():
     images = util.load_images(args)
     log.info("{} images".format(len(images)))
 
-    # Loading model to the plugin
+    # Load network model
     network = engine.load_network(args.net, args.device)
 
     log.info("Starting inference in synchronous mode")
@@ -38,12 +38,12 @@ def main():
 def init():
     log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log.INFO, stream=sys.stdout)
     args = parse_args("classification")
-    # Plugin initialization for specified device and load extensions library if specified
-    log.info("Creating Inference Engine")
     return args
 
 
 def init_engine(args):
+    # Plugin initialization for specified device and load extensions library if specified
+    log.info("Creating Inference Engine")
     engine = IECore()
     # Read a model in OpenVINO Intermediate Representation (.xml and .bin files) or ONNX (.onnx file) format
     log.debug(f"Loading network: {args.model}")
@@ -87,4 +87,3 @@ def show_results(args, result):
 
 if __name__ == '__main__':
     main()
-

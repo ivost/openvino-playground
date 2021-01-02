@@ -13,6 +13,7 @@ def parse_args(name):
                         env_var="MODEL",
                         default="./models/squeezenet1.1/FP16/squeezenet1.1.xml",
                         type=str)
+    # ./models/ssdlite_mobilenet_v2/ssdlite_mobilenet_v2.xml
     parser.add_argument("--labels", help="Optional. Path to a labels mapping file",
                         env_var="LABELS",
                         default="./models/squeezenet1.1/FP16/squeezenet1.1.labels",
@@ -32,11 +33,9 @@ def parse_args(name):
                         action='store_true',
                         default=False)
     parser.add_argument("-tn", "--top", help="Optional. Number of top results", default=3, type=int)
-    #parser.add_argument('-h', '--help', action='help', default=SUPPRESS, help='Show this help message and exit.')
     args = parser.parse_args()
     if args.number > 100:
         args.number = 100
-    print("quiet", args.quiet)
     return args
 
 # todo

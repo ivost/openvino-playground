@@ -23,7 +23,6 @@ def count_images(args):
             break
         if isfile(join(path, f)):
             count += 1
-    #print("image count", count)
     return count
 
 
@@ -32,7 +31,7 @@ def load_images(args):
     files = []
     count = 0
     if os.path.isdir(path):
-        print("loading images from", path)
+        log.debug(f"loading images from {path}")
         for f in listdir(path):
             if count == args.count:
                 break
@@ -40,17 +39,22 @@ def load_images(args):
                 count += 1
                 files.append(join(path, f))
     else:
+        log.debug(f"loading image {path}")
         files.append(path)
+        count = 1
     assert args.count == count
     args.files = files
-    # print(args.files)
+
     images = np.ndarray(shape=(args.count, args.c, args.h, args.w))
+    args.images_hw = []
     for i in range(args.count):
         # print(files[i])
         image = cv2.imread(files[i])
         if image is None:
             log.error("File {} {} not found".format(i, files[i]))
             continue
+        ih, iw = image.shape[:-1]
+        args.images_hw.append((ih, iw))
         if image.shape[:-1] != (args.h, args.w):
             # log.debug("Image {} is resized from {} to {}".format(files[i], image.shape[:-1], (args.h, args.w)))
             image = cv2.resize(image, (args.w, args.h))

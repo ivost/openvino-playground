@@ -8,6 +8,7 @@ D=$DIR/..
 
 export PYTHONPATH=$D:$PYTHONPATH
 export INPUT=$HOME/data/imagen
+# interesting case
 #export INPUT=$D/images/918-02.jpg
 export MODEL=$D/models/squeezenet1.1/FP16/squeezenet1.1.xml
 export LABELS=$D/models/squeezenet1.1/FP16/squeezenet1.1.labels
