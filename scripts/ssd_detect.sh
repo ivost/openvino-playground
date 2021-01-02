@@ -18,7 +18,7 @@ if [[ ! -f  $MODEL ]]; then
     exit 1
 fi
 
-for file in "$D/images"/car*.jpg; do
+for file in "$D/images"/918-02.jpg; do
   echo "$file"
   python3 ${D}/inference_engine/samples/python/object_detection_ssd/detect.py \
     --model $MODEL \
