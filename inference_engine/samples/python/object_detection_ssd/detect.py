@@ -64,16 +64,16 @@ def main():
     # -----------------------------------------------------------------------------------------------------
 
     # ------------- 2. Load Plugin for inference engine and extensions library if specified --------------
-    log.info("Device info:")
-    versions = ie.get_versions(args.device)
-    print("{}{}".format(" " * 8, args.device))
-    print("{}MKLDNNPlugin version ......... {}.{}".format(" " * 8, versions[args.device].major,
-                                                          versions[args.device].minor))
-    print("{}Build ........... {}".format(" " * 8, versions[args.device].build_number))
+    # log.info("Device info:")
+    # versions = ie.get_versions(args.device)
+    # print("{}{}".format(" " * 8, args.device))
+    # print("{}MKLDNNPlugin version ......... {}.{}".format(" " * 8, versions[args.device].major,
+    #                                                       versions[args.device].minor))
+    # print("{}Build ........... {}".format(" " * 8, versions[args.device].build_number))
 
-    if args.cpu_extension and "CPU" in args.device:
-        ie.add_extension(args.cpu_extension, "CPU")
-        log.info("CPU extension loaded: {}".format(args.cpu_extension))
+    # if args.cpu_extension and "CPU" in args.device:
+    #     ie.add_extension(args.cpu_extension, "CPU")
+    #     log.info("CPU extension loaded: {}".format(args.cpu_extension))
     # -----------------------------------------------------------------------------------------------------
 
     # --------------------------- 3. Read and preprocess input --------------------------------------------
@@ -83,6 +83,8 @@ def main():
     for input_key in net.input_info:
         print("input shape: " + str(net.input_info[input_key].input_data.shape))
         print("input key: " + input_key)
+        el = net.input_info[input_key].input_data
+        print("LAYOUT", el.layout)
         if len(net.input_info[input_key].input_data.layout) == 4:
             n, c, h, w = net.input_info[input_key].input_data.shape
 
@@ -111,9 +113,9 @@ def main():
     input_name, input_info_name = "", ""
 
     for input_key in net.input_info:
+        print("==== LAYOUT ", net.input_info[input_key].layout)
         if len(net.input_info[input_key].layout) == 4:
             input_name = input_key
-            log.info("Batch size is {}".format(net.batch_size))
             net.input_info[input_key].precision = 'U8'
         elif len(net.input_info[input_key].layout) == 2:
             input_info_name = input_key
