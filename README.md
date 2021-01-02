@@ -58,6 +58,48 @@ tensorflow 1.15.4 requires numpy<1.19.0,>=1.16.0, but you have numpy 1.19.4 whic
 
 
 
+p downloader.py -h
+usage: downloader.py [-h] [--name PAT[,PAT...]] [--list FILE.LST] [--all]
+                     [--print_all] [--precisions PREC[,PREC...]] [-o DIR]
+                     [--cache_dir DIR] [--num_attempts N]
+                     [--progress_format {text,json}] [-j N]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --name PAT[,PAT...]   download only models whose names match at least one of
+                        the specified patterns
+  --list FILE.LST       download only models whose names match at least one of
+                        the patterns in the specified file
+  --all                 download all available models
+  --print_all           print all available models
+  --precisions PREC[,PREC...]
+                        download only models with the specified precisions
+                        (actual for DLDT networks)
+  -o DIR, --output_dir DIR
+                        path where to save models
+  --cache_dir DIR       directory to use as a cache for downloaded files
+  --num_attempts N      attempt each download up to N times
+  --progress_format {text,json}
+                        which format to use for progress reporting
+  -j N, --jobs N        how many downloads to perform concurrently
+
+python3 downloader.py --name person-vehicle-bike-detection-crossroad-1016
+
+
+python3 downloader.py --print_all
+
+
+
+
+
+
+
+
+
+
+
+
+
 =====
 
 cd /opt/intel/openvino_2021/deployment_tools/model_optimizer

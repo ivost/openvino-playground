@@ -4,7 +4,8 @@ SCRIPT=`realpath $0`
 DIR=`dirname $SCRIPT`
 D=$DIR/..
 
-MODEL=$D/models/person-vehicle-bike-detection-crossroad-1016/FP16/person-vehicle-bike-detection-crossroad-1016.xml
+#MODEL=$D/models/person-vehicle-bike-detection-crossroad-1016/FP16/person-vehicle-bike-detection-crossroad-1016.xml
+MODEL=$D/models/ssdlite_mobilenet_v2/ssdlite_mobilenet_v2.xml
 
 echo -e "Model $MODEL"
 
