@@ -4,23 +4,20 @@ SCRIPT=`realpath $0`
 DIR=`dirname $SCRIPT`
 D=$DIR/..
 
-# INP=$D/images/duo.jpg
-# INP=$D/images/duo01.jpg
-# INP=$D/images/duo02.jpg
-# INP=$D/images/cat01.jpg
-# INP=$D/images/dog03.jpeg
-
-
 MODEL=$D/models/ssdlite_mobilenet_v2/ssdlite_mobilenet_v2.xml
+#MODEL=$D/models/person-vehicle-bike-detection-crossroad-1016/FP16/person-vehicle-bike-detection-crossroad-1016.xml
 
 if [[ ! -f  $MODEL ]]; then 
     echo -e "Model $MODEL not found"
     exit 1
 fi
 
-for file in "$D/images"/918-02.jpg; do
+P=$D/inference_engine/samples/python/attic/detect.py
+#P=$D/python/detect/detect.py 
+
+for file in "$D/images"/car-ped-bike-01.jpg; do
   echo "$file"
-  python3 ${D}/python/detect/detect.py \
+  python3 $P \
     --model $MODEL \
     --device CPU \
     --input $file

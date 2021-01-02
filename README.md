@@ -32,10 +32,59 @@ pip install openvino
 pyenv local venv-3.7
 
 python3 -c "import openvino"
-
 open -na "PyCharm.app"
 
 Make sure to change working dir in run config to openvino-playground
+
+
+====
+
+to download and convert model to ir
+
+for pytorch
+
+https://docs.openvinotoolkit.org/latest/omz_models_intel_person_vehicle_bike_detection_crossroad_1016_description_person_vehicle_bike_detection_crossroad_1016.html
+
+cd deployment_tools/tools/model_downloader
+
+pyenv local venv-3.7 && pip -V
+
+pip install -r requirements.in
+
+pip install requirements-pytorch.in
+
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+tensorflow 1.15.4 requires numpy<1.19.0,>=1.16.0, but you have numpy 1.19.4 which is incompatible.
+
+
+
+=====
+
+cd /opt/intel/openvino_2021/deployment_tools/model_optimizer
+
+pip install -r requirements_onnx.txt 
+
+py 3.8?
+
+pip install -r requirements_tf.txt 
+
+
+open_model_zoo/models/public/ 
+
+
+python3 mo.py -h
+
+https://docs.openvinotoolkit.org/latest/omz_models_public_ssdlite_mobilenet_v2_ssdlite_mobilenet_v2.html
+
+http://download.tensorflow.org/models/object_detection/ssdlite_mobilenet_v2_coco_2018_05_09.tar.gz
+
+python3 mo.py \
+  --framework tf --input_model_is_text \
+  --output_dir /tmp \
+  --input_model ../open_model_zoo/models/public/ssdlite_mobilenet_v2/model.yml
+
+
+
 
 ---
 
