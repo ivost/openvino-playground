@@ -16,7 +16,7 @@ fi
 
 P=$D/python/detect/detect.py 
 
-for file in "$D/images"/car-ped-bike-01.jpg; do
+for file in "$D/images"/car-ped-bike*.jpg; do
   echo "$file"
   python3 $P \
     --model $MODEL \

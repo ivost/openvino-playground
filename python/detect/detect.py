@@ -151,6 +151,7 @@ def main():
                 print()
 
     max_w = 640
+    min_w = 600
     for imid in classes:
         result = cv2.imread(args.files[imid])
         for box in boxes[imid]:
@@ -160,6 +161,12 @@ def main():
             w = int(r*iw)
             h = int(r*ih)
             result = cv2.resize(result, (w, h))
+        else:
+            if iw < min_w:
+                r = min_w / iw
+                w = int(r * iw)
+                h = int(r * ih)
+                result = cv2.resize(result, (w, h))
 
         cv2.imwrite("/tmp/out.jpg", result)
         log.info("Image /tmp/out.jpg created!")
