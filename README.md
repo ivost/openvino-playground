@@ -1,8 +1,8 @@
 # openvino-playground
-learning openvino
 
+## learning openvino
 
-needs python 3.7
+### needs python 3.7
 sudo apt install python3.7
 
 install pyenv
@@ -24,10 +24,9 @@ pyenv doctor
 pyenv install 3.7.9
 pyenv virtualenv 3.7.9 venv-3.7
 
-pyenv global venv-3.7 && pip3 -V
-pyenv local venv-3.7 && pip3 -V
-
-~/.pyenv/versions/3.7.9/envs/venv-3.7/bin/python3.7 -m pip install --upgrade pip
+pyenv global venv-3.7 && pip3 -V && python -V
+pyenv local venv-3.7 && pip3 -V && python -V
+python -m pip install --upgrade pip
 ```
 Successfully installed pip-20.3.3
 
@@ -46,6 +45,8 @@ Make sure to change working dir in run config to openvino-playground
 to download and convert model to ir
 
 for pytorch
+
+```
 
 https://docs.openvinotoolkit.org/latest/omz_models_intel_person_vehicle_bike_detection_crossroad_1016_description_person_vehicle_bike_detection_crossroad_1016.html
 
@@ -91,21 +92,9 @@ python3 downloader.py --name person-vehicle-bike-detection-crossroad-1016
 
 
 python3 downloader.py --print_all
-
-
-
-
-
-
-
-
-
-
-
-
-
-=====
-
+```
+==
+```
 cd /opt/intel/openvino_2021/deployment_tools/model_optimizer
 
 pip install -r requirements_onnx.txt 
@@ -129,40 +118,29 @@ python3 mo.py \
   --output_dir /tmp \
   --input_model ../open_model_zoo/models/public/ssdlite_mobilenet_v2/model.yml
 
-
-
-
----
-
-sudo cp -rv /opt/intel/openvino_2021/deployment_tools/inference_engine/lib/intel64/* /lib/x86_64-linux-gnu/
-
+  sudo cp -rv /opt/intel/openvino_2021/deployment_tools/inference_engine/lib/intel64/* /lib/x86_64-linux-gnu/
+```
 Get imagenet samples
-
+```
 MD ~/datap
 git clone https://github.com/ajschumacher/imagen
 cd imagen/
 mv imagen/* .
 rmdir imagen/
-
+```
 assuming jpg files are in $HOME/data/imagen
 
 Classification example
 
 ./scripts/classify.sh
 
-Performance:
+| Device | time | Right Align |
+| -------------------------- | :--------- |
+| Intel i7 3GHz  | 2.6 ms |
+| Mac Core i7 2.6GHz  | 2.7 ms |
+| Adlink Atom E3940 1.6 GHz | 27 ms |
+| Adlink MyriadX / HDDL | 9 ms |
 
-on fast i7 3 GHz
-2.6 ms 
-
-on Mac - Core i7 2.6 GHz
-2.7 ms
-
-on Vizi: Atom(TM) Processor E3940 @ 1.60GHz 4 cores
-27 ms ~10X slower
-
-with HDDL / Myriad
-9 ms - ~3X faster than Atom - still 3X slower than i7
 
 
 
