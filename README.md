@@ -134,16 +134,10 @@ Classification example
 
 ./scripts/classify.sh
 
-| Device | time | Right Align |
-| -------------------------- | :--------- |
+| Device | time |
+| -------------------------- | ----: | 
 | Intel i7 3GHz  | 2.6 ms |
 | Mac Core i7 2.6GHz  | 2.7 ms |
 | Adlink Atom E3940 1.6 GHz | 27 ms |
 | Adlink MyriadX / HDDL | 9 ms |
-
-
-
-
-
-
 
