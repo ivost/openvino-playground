@@ -6,6 +6,7 @@ needs python 3.7
 sudo apt install python3.7
 
 install pyenv
+```
 https://github.com/pyenv/pyenv-installer
 curl https://pyenv.run | bash
 in .bashrc
@@ -27,7 +28,7 @@ pyenv global venv-3.7 && pip3 -V
 pyenv local venv-3.7 && pip3 -V
 
 ~/.pyenv/versions/3.7.9/envs/venv-3.7/bin/python3.7 -m pip install --upgrade pip
-
+```
 Successfully installed pip-20.3.3
 
 pip install openvino
