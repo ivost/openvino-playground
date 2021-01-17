@@ -22,12 +22,12 @@ if [[ ! -f  $MODEL ]]; then
     exit 1
 fi
 
-python3 $D/python/classify/main.py -h
+# python3 $D/python/classify/main.py -h
 
 
 python3 $D/python/classify/main.py \
   -n 100 \
-  --device CPU
+  --device MYRIAD
 #  --quiet \
 
 # max batch size with HDDL is 100
