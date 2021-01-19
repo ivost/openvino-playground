@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env py
 # coding: utf-8
 
 # <a id="top"></a>

@@ -22,7 +22,7 @@ if [[ ! -f  $MODEL ]]; then
     exit 1
 fi
 
-# python3 $D/python/classify/main.py -h
+# python3 $D/py/classify/classify.py -h
 
 
 python3 $D/python/classify/main.py \

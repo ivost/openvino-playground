@@ -138,7 +138,7 @@ def main():
             print("{}{}{}{}{:.7f}".format(' ' * space_num_before, det_label,
                                           ' ' * space_num_after, ' ' * space_num_before_prob,
                                           probs[id]))
-        print("\n")
+            print("\n")
     log.info(
         "This sample is an API example, for any performance measurements please use the dedicated benchmark_app tool\n")
 
