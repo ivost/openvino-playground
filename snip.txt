@@ -1,0 +1,125 @@
+install pyenv
+```
+https://github.com/pyenv/pyenv-installer
+curl https://pyenv.run | bash
+in .bashrc
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+
+sudo apt-get install -y make build-essential libssl-dev zlib1g-dev \
+libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev \
+libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl
+
+pyenv --version
+
+pyenv doctor
+
+pyenv install 3.7.9
+pyenv virtualenv 3.7.9 venv-3.7
+
+pyenv global venv-3.7 && pip3 -V && python -V
+pyenv local venv-3.7 && pip3 -V && python -V
+python -m pip install --upgrade pip
+```
+Successfully installed pip-20.3.3
+
+pip install openvino
+
+pyenv local venv-3.7
+
+python3 -c "import openvino"
+open -na "PyCharm.app"
+
+Make sure to change working dir in run config to openvino-playground
+
+
+====
+
+to download and convert model to ir
+
+for pytorch
+
+```
+
+https://docs.openvinotoolkit.org/latest/omz_models_intel_person_vehicle_bike_detection_crossroad_1016_description_person_vehicle_bike_detection_crossroad_1016.html
+
+cd deployment_tools/tools/model_downloader
+
+pyenv local venv-3.7 && pip -V
+
+pip install -r requirements.in
+
+pip install requirements-pytorch.in
+
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+tensorflow 1.15.4 requires numpy<1.19.0,>=1.16.0, but you have numpy 1.19.4 which is incompatible.
+
+
+
+p downloader.py -h
+usage: downloader.py [-h] [--name PAT[,PAT...]] [--list FILE.LST] [--all]
+                     [--print_all] [--precisions PREC[,PREC...]] [-o DIR]
+                     [--cache_dir DIR] [--num_attempts N]
+                     [--progress_format {text,json}] [-j N]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --name PAT[,PAT...]   download only models whose names match at least one of
+                        the specified patterns
+  --list FILE.LST       download only models whose names match at least one of
+                        the patterns in the specified file
+  --all                 download all available models
+  --print_all           print all available models
+  --precisions PREC[,PREC...]
+                        download only models with the specified precisions
+                        (actual for DLDT networks)
+  -o DIR, --output_dir DIR
+                        path where to save models
+  --cache_dir DIR       directory to use as a cache for downloaded files
+  --num_attempts N      attempt each download up to N times
+  --progress_format {text,json}
+                        which format to use for progress reporting
+  -j N, --jobs N        how many downloads to perform concurrently
+
+python3 downloader.py --name person-vehicle-bike-detection-crossroad-1016
+
+
+python3 downloader.py --print_all
+```
+==
+```
+cd /opt/intel/openvino_2021/deployment_tools/model_optimizer
+
+pip install -r requirements_onnx.txt
+
+py 3.8?
+
+pip install -r requirements_tf.txt
+
+
+open_model_zoo/models/public/
+
+
+python3 mo.py -h
+
+https://docs.openvinotoolkit.org/latest/omz_models_public_ssdlite_mobilenet_v2_ssdlite_mobilenet_v2.html
+
+http://download.tensorflow.org/models/object_detection/ssdlite_mobilenet_v2_coco_2018_05_09.tar.gz
+
+python3 mo.py \
+  --framework tf --input_model_is_text \
+  --output_dir /tmp \
+  --input_model ../open_model_zoo/models/public/ssdlite_mobilenet_v2/model.yml
+
+  sudo cp -rv /opt/intel/openvino_2021/deployment_tools/inference_engine/lib/intel64/* /lib/x86_64-linux-gnu/
+```
+Get imagenet samples
+```
+git clone https://github.com/ajschumacher/imagen
+```
+assuming jpg files are in $HOME/data/imagen
+
+Classification example
+
+./scripts/classify.sh
+

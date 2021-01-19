@@ -1,13 +1,13 @@
 import os
 
-from envargparse import EnvArgParser, EnvArgDefaultsHelpFormatter
+# from envargparse import EnvArgParser, EnvArgDefaultsHelpFormatter
 
 
 def parse_args(name):
     parser = EnvArgParser(prog=name, formatter_class=EnvArgDefaultsHelpFormatter)
     parser.add_argument("-i", "--input", help="Required. Path to a image or folder with images.",
                         env_var="INPUT",
-                        default="./images",
+                        default="./images/",
                         type=str)
     parser.add_argument("-m", "--model", help="Required. Path to an .xml or .onnx file with a trained model.",
                         env_var="MODEL",
