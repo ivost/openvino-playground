@@ -23,8 +23,6 @@ python   3.6
 openvino 2021.2
 numpy    1.16.3
 opencv-python 3.4.4.19
-
-
 ```
 
 
