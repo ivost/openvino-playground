@@ -1,6 +1,8 @@
 *.*~
 venv
 
+**/FP32
+
 **/__pycache__/
 *.pyc
 .idea

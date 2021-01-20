@@ -93,10 +93,7 @@ def init_engine(args):
     net.batch_size = args.count
     n, args.c, args.h, args.w = net.input_info[args.input_blob].input_data.shape
     log.debug("Batch size: {}".format(n))
-
     args.net = net
-
-
     return engine
 
 
