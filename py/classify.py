@@ -11,7 +11,8 @@ from openvino.inference_engine import IECore
 from py.common import util
 from py.common.args import parse_args
 
-version = "v.2021.1.18"
+version = "v.2021.1.20"
+
 
 def main():
     t0 = time.perf_counter()
@@ -20,7 +21,7 @@ def main():
 
     args = init()
     assert os.path.exists(args.input)
-
+    args.count = 100
     # check how many images are available
     count = util.count_images(args)
     if count < args.count:
@@ -35,10 +36,19 @@ def main():
     log.info(f"Loaded {len(args.files)} image(s)")
 
     log.info(f"Image preparation")
-    images = util.preproces_images(args)
+
+    assert Path(args.model).exists()
+    log.info(f"Loading network: {args.model}")
+    from openvino.inference_engine import IECore
+    ie = IECore()
+    net = ie.read_network(model=args.model)
 
     # initialize openvino engine
     engine = init_engine(args)
+
+    exec_net = ie.load_network(network=args.net, device_name=args.device)
+
+    images = util.preprocess_images(args)
 
     # Load network model
     network = engine.load_network(args.net, args.device)
@@ -52,22 +62,27 @@ def main():
     failed = 0
     log.info(f"START - repeating {repeat} time(s)")
 
-    # for _ in range(repeat):
-    #     for image in images:
-    #         path = Path(args.files[idx]).absolute()
-    #         total += 1
-    #         idx += 1
-    #         t1 = time.perf_counter()
-    #         # inference
+    for _ in range(repeat):
+        # assuming batch size = 1
+        for idx in range(len(args.files)):
+            util.preprocess_batch(args, idx)
+            t1 = time.perf_counter()
+            # inference
+            res = exec_net.infer(inputs={args.input_blob: args.np_images})
+            inference_duration += time.perf_counter() - t1
+            if not args.quiet:
+                show_results(args, res, idx)
+            total += 1
 
-    # inference
-    res = network.infer(inputs={args.input_blob: images})
-    #elapsed_time = time.time() - start_time
-    if not args.quiet:
-        show_results(args, res)
-
-    # log.info("elapsed time: {:.3} sec".format(elapsed_time))
-    # log.info("     average: {:.3} ms".format(1000 * elapsed_time / args.count))
+    dur = time.perf_counter() - t0
+    avg = (inference_duration * 1000) / total
+    log.info(f"  Total images: {total}, not classified: {failed}")
+    log.info(f"Inference time: {inference_duration*1000:.0f} ms")
+    log.info(f"       Average: {avg:.2f} ms")
+    log.info(f"  Elapsed time: {dur*1000:.0f} ms")
+    # if out_dir:
+    #     log.info(f"Results are in {out_dir}")
+    log.info(f"  END")
 
 
 def init():
@@ -82,22 +97,19 @@ def init_engine(args):
     engine = IECore()
     # Read a model in OpenVINO Intermediate Representation (.xml and .bin files) or ONNX (.onnx file) format
     log.debug(f"Loading network: {args.model}")
-
     net = engine.read_network(args.model)
-
     assert len(net.input_info.keys()) == 1, "Sample supports only single input topologies"
     assert len(net.outputs) == 1, "Sample supports only single output topologies"
-
     args.input_blob = next(iter(net.input_info))
     args.out_blob = next(iter(net.outputs))
-    net.batch_size = args.count
-    n, args.c, args.h, args.w = net.input_info[args.input_blob].input_data.shape
-    log.debug("Batch size: {}".format(n))
+    args.batch_size, args.c, args.h, args.w = net.input_info[args.input_blob].input_data.shape
+    log.debug(f"h {args.h}, w {args.w}")
+    args.size = (args.w, args.h)
     args.net = net
     return engine
 
 
-def show_results(args, result):
+def show_results(args, result, idx):
     # todo: add arg
     min_prob = 0.25
     result = result[args.out_blob]
@@ -111,7 +123,7 @@ def show_results(args, result):
     for i, probs in enumerate(result):
         probs = np.squeeze(probs)
         top_ind = np.argsort(probs)[-args.top:][::-1]
-        print("\nImage {}/{} - {}".format(i + 1, args.count, args.files[i]))
+        print("\nImage {}/{} - {}".format(idx+1, len(args.files), args.files[idx]))
         count = 0
         for id in top_ind:
             if probs[id] < min_prob:

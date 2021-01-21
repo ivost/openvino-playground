@@ -82,7 +82,7 @@ def main():
     log.info("Preparing input blobs")
     input_blob = next(iter(net.input_info))
     out_blob = next(iter(net.outputs))
-    net.batch_size = 1
+    # net.batch_size = 1
 
     # Read and pre-process input images
     n, c, h, w = net.input_info[input_blob].input_data.shape

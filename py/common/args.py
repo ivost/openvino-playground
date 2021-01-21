@@ -4,8 +4,13 @@ from argparse import ArgumentParser, SUPPRESS
 
 def parse_args(name):
     parser = ArgumentParser()
+
     parser.add_argument("-i", "--input", help="Required. Path to a image or folder with images.",
                         default="../images",
+                        type=str)
+    # todo: use Path.glob
+    parser.add_argument("-r", "--re_path", help="Optional.",
+                        default=None,   # default=R'dog.*\.jpg',
                         type=str)
 
     parser.add_argument("-m", "--model", help="Required. Path to an .xml or .onnx file with a trained model.",
@@ -17,7 +22,7 @@ def parse_args(name):
                         type=str)
 
     parser.add_argument("-d", "--device",
-                        help="Optional. Target device: CPU, GPU, FPGA, HDDL, MYRIAD or HETERO.",
+                        help="Optional. Target device: MYRIAD, CPU, GPU, FPGA, HDDL, or HETERO.",
                         default="CPU",
                         type=str)
 

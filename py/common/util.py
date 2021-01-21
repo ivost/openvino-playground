@@ -88,39 +88,35 @@ def count_or_load_images(args, count_only):
     return count
 
 
-def preproces_images(args):
+def preprocess_images(args):
     result = []
+    start = time.perf_counter()
+    for file in args.files:
+        if Path(file).is_dir():
+            continue
+        if args.verbose > 1:
+            log.debug(f"file {file}")
+        result.append(Image.open(file).convert('RGB').resize(args.size, Image.ANTIALIAS))
 
-    # Read and pre-process input images
-    n, c, h, w = net.input_info[input_blob].input_data.shape
-    images = np.ndarray(shape=(n, c, h, w))
-    for i in range(n):
-        file = args.input
-        log.info(f"input {file}")
-        if not Path(file).exists():
-            log.error(f"{file} NOT FOUND ")
-            exit(4)
-
-        image = cv2.imread(file)
-        if image.shape[:-1] != (h, w):
-            log.warning("Image {} is resized from {} to {}".format(args.input[i], image.shape[:-1], (h, w)))
-            image = cv2.resize(image, (w, h))
-        image = image.transpose((2, 0, 1))  # Change data layout from HWC to CHW
-        images[i] = image
-    log.info("Batch size is {}".format(n))
-
-    # start = time.perf_counter()
-    # for file in args.files:
-    #     if Path(file).is_dir():
-    #         continue
-    #     if args.verbose > 1:
-    #         log.debug(f"file {file}")
-    #     result.append(Image.open(file).convert('RGB').resize(args.size, Image.ANTIALIAS))
-    #
-    # duration = (time.perf_counter() - start) / 1000
-    # if duration > 2:
-    #     log.debug(f"preprocessing took {duration} ms")
+    duration = (time.perf_counter() - start) / 1000
+    if duration > 2:
+        log.debug(f"preprocessing took {duration} ms")
     return result
+
+
+def preprocess_batch(args, idx):
+    args.np_images = np.ndarray(shape=(args.batch_size, args.c, args.h, args.w))
+    for i in range(idx, idx+args.batch_size):
+        if i >= len(args.files[i]):
+            return
+        file = args.files[i]
+        image = cv2.imread(file)
+        if image.shape[:-1] != (args.h, args.w):
+            log.debug(f"resize from {image.shape[:-1]} to {(args.h, args.w)}")
+            image = cv2.resize(image, (args.w, args.h))
+        # Change data layout from HWC to CHW
+        args.np_images[i-idx] = image.transpose((2, 0, 1))
+    return
 
 
 def copy_to_dir(args, src_file_path, dest_dir_path):
@@ -137,90 +133,35 @@ def copy_to_dir(args, src_file_path, dest_dir_path):
 def test():
     log.basicConfig(format="[ %(levelname)s ] %(message)s",
                     level=log.DEBUG, stream=sys.stdout)
-
-    # log.debug("testing...")
-
+    log.debug("testing...")
     from py.common.args import parse_args
     args = parse_args("test")
+    args.verbose = 2
     args.input = "../../images"
-
-    n = count_images(args)
-    assert 0 <= n <= 100
-
+    args.re_path = R'dog.*\.jpg'
+    args.model = "../../models/squeezenet1.1/FP16/squeezenet1.1.xml"
+    assert Path(args.input).exists()
+    args.count = n = count_images(args)
+    assert 0 < n <= 100
     args.start = n - 2
     args.count = 5
+    args.n, args.c, args.h, args.w = 1, 3, 227, 227
+    args.size = (args.w, args.h)
+
     load_images(args)
     m = len(args.files)
     assert 0 <= m <= 5
 
-    # must use raw string and valid regex "cat*.jpg" -> "cat.*\.jpg"
-    # todo: fixme
-    # args.re_path = R'dog.*\.jpg'
-    # args.count = 0
-    # args.number = 3
-    # args.verbose = 2
-    # m = count_images(args)
-    # load_images(args)
-    # m = len(args.files)
-    # assert 0 < m <= 3
+    args.images = preprocess_images(args)
+    for idx in range(len(args.images)):
+        preprocess_batch(args, idx)
+        assert args.n == args.np_images.shape[0]
+
+    log.info("OK")
 
 
 if __name__ == '__main__':
     test()
-
-# def count_images(args):
-#     path = os.path.abspath(args.input)
-#     if not os.path.exists(path):
-#         return 0
-#     if os.path.isfile(path):
-#         return 1
-#     if not os.path.isdir(path):
-#         return 0
-#     count = 0
-#     max = args.start + args.number
-#     for f in listdir(path):
-#         if count >= max:
-#             break
-#         if isfile(join(path, f)):
-#             count += 1
-#     return count
-#
-#
-# def load_images(args):
-#     path = os.path.abspath(args.input)
-#     files = []
-#     count = 0
-#     if os.path.isdir(path):
-#         log.debug(f"loading images from {path}")
-#         for f in listdir(path):
-#             if count == args.count:
-#                 break
-#             if isfile(join(path, f)):
-#                 count += 1
-#                 files.append(join(path, f))
-#     else:
-#         log.debug(f"loading image {path}")
-#         files.append(path)
-#         count = 1
-#     assert args.count == count
-#     args.files = files
-#
-#     images = np.ndarray(shape=(args.count, args.c, args.h, args.w))
-#     args.images_hw = []
-#     for i in range(args.count):
-#         # print(files[i])
-#         image = cv2.imread(files[i])
-#         if image is None:
-#             log.error("File {} {} not found".format(i, files[i]))
-#             continue
-#         ih, iw = image.shape[:-1]
-#         args.images_hw.append((ih, iw))
-#         if image.shape[:-1] != (args.h, args.w):
-#             # log.debug("Image {} is resized from {} to {}".format(files[i], image.shape[:-1], (args.h, args.w)))
-#             image = cv2.resize(image, (args.w, args.h))
-#         image = image.transpose((2, 0, 1))  # Change data layout from HWC to CHW
-#         images[i] = image
-#     return images
 
 
 def timeit(method):
@@ -236,5 +177,5 @@ def timeit(method):
                   (method.__name__, (te - ts) * 1000))
         return result
 
-        #files = [join(path, f) for f in listdir(path) if isfile(join(path, f))]
-        #files = files[args.start: args.start + args.count]
+# files = [join(path, f) for f in listdir(path) if isfile(join(path, f))]
+# files = files[args.start: args.start + args.count]
