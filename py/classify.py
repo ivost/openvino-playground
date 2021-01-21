@@ -27,6 +27,8 @@ def main():
     if count < args.count:
         args.count = count
 
+    args.verbose = 0
+
     # Read and pre-process input images
     images = util.load_images(args)
     if len(args.files) == 0:
@@ -53,16 +55,18 @@ def main():
     # Load network model
     network = engine.load_network(args.net, args.device)
 
+    log.info("device {args.device}")
     log.info("Starting inference in synchronous mode")
-    repeat = 1
     # accumulates inference time
     inference_duration = 0
     total = 0
     idx = 0
     failed = 0
-    log.info(f"START - repeating {repeat} time(s)")
+    # todo: args
+    args.repeat = 2
+    log.info(f"START - repeating {args.repeat} time(s)")
 
-    for _ in range(repeat):
+    for _ in range(args.repeat):
         # assuming batch size = 1
         for idx in range(len(args.files)):
             util.preprocess_batch(args, idx)
@@ -70,8 +74,8 @@ def main():
             # inference
             res = exec_net.infer(inputs={args.input_blob: args.np_images})
             inference_duration += time.perf_counter() - t1
-            if not args.quiet:
-                show_results(args, res, idx)
+            if not check_results(args, res, idx):
+                failed += 1
             total += 1
 
     dur = time.perf_counter() - t0
@@ -109,18 +113,19 @@ def init_engine(args):
     return engine
 
 
-def show_results(args, result, idx):
+def check_results(args, result, idx):
     # todo: add arg
     min_prob = 0.25
-    result = result[args.out_blob]
+    res = result[args.out_blob]
 
     if args.labels:
         with open(args.labels, 'r') as f:
             labels_map = [x.split(sep=' ', maxsplit=1)[-1].strip() for x in f]
     else:
         labels_map = None
+        return
 
-    for i, probs in enumerate(result):
+    for i, probs in enumerate(res):
         probs = np.squeeze(probs)
         top_ind = np.argsort(probs)[-args.top:][::-1]
         print("\nImage {}/{} - {}".format(idx+1, len(args.files), args.files[idx]))
@@ -129,10 +134,14 @@ def show_results(args, result, idx):
             if probs[id] < min_prob:
                 break
             label = labels_map[id] if labels_map else "{}".format(id)
-            print("{:4.1%} {} [{}]".format(probs[id], label, id))
+            if args.verbose > 0:
+                print("{:4.1%} {} [{}]".format(probs[id], label, id))
             count += 1
         if count == 0:
-            print("--")
+            if args.verbose > 0:
+                print("--")
+
+        return count > 0
 
 
 if __name__ == '__main__':
