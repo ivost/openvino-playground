@@ -18,10 +18,9 @@ def main():
     t0 = time.perf_counter()
     args = init()
     log.info(f"Classification benchmark {version}")
-
-    args = init()
     assert os.path.exists(args.input)
     args.count = 100
+    args.device = "MYRIAD"
     # check how many images are available
     count = util.count_images(args)
     if count < args.count:
@@ -30,7 +29,7 @@ def main():
     args.verbose = 0
 
     # Read and pre-process input images
-    images = util.load_images(args)
+    util.load_images(args)
     if len(args.files) == 0:
         log.info(f"empty input set")
         exit(0)
@@ -41,22 +40,17 @@ def main():
 
     assert Path(args.model).exists()
     log.info(f"Loading network: {args.model}")
-    from openvino.inference_engine import IECore
-    ie = IECore()
-    net = ie.read_network(model=args.model)
 
     # initialize openvino engine
-    engine = init_engine(args)
+    core = init_engine(args)
 
-    exec_net = ie.load_network(network=args.net, device_name=args.device)
-
-    images = util.preprocess_images(args)
+    util.preprocess_images(args)
 
     # Load network model
-    network = engine.load_network(args.net, args.device)
+    network = core.load_network(network=args.net, device_name=args.device)
 
-    log.info("device {args.device}")
-    log.info("Starting inference in synchronous mode")
+    log.info(f"device {args.device}")
+    log.info(f"Starting inference in synchronous mode")
     # accumulates inference time
     inference_duration = 0
     total = 0
@@ -72,7 +66,7 @@ def main():
             util.preprocess_batch(args, idx)
             t1 = time.perf_counter()
             # inference
-            res = exec_net.infer(inputs={args.input_blob: args.np_images})
+            res = network.infer(inputs={args.input_blob: args.np_images})
             inference_duration += time.perf_counter() - t1
             if not check_results(args, res, idx):
                 failed += 1
@@ -128,7 +122,8 @@ def check_results(args, result, idx):
     for i, probs in enumerate(res):
         probs = np.squeeze(probs)
         top_ind = np.argsort(probs)[-args.top:][::-1]
-        print("\nImage {}/{} - {}".format(idx+1, len(args.files), args.files[idx]))
+        if args.verbose > 0:
+            print("\nImage {}/{} - {}".format(idx+1, len(args.files), args.files[idx]))
         count = 0
         for id in top_ind:
             if probs[id] < min_prob:

@@ -1,9 +1,6 @@
 import re
 import shutil
 import sys
-import time
-from os import listdir
-from os.path import isfile, join
 from pathlib import Path
 
 from PIL import Image
