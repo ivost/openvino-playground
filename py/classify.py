@@ -8,8 +8,8 @@ from pathlib import Path
 import numpy as np
 from openvino.inference_engine import IECore
 
-from py.common import util
-from py.common.args import parse_args
+from common import util
+from common.args import parse_args
 
 version = "v.2021.1.20"
 
