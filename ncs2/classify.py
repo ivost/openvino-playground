@@ -3,6 +3,7 @@ import time
 
 import numpy as np
 
+from ncs2.stats import Stats
 from ncs2.util import Util
 
 version = "v.2021.1.23"
@@ -15,8 +16,10 @@ class Classify:
 
     def main(self):
         ctx = self.util
+        stats = Stats()
         ctx.prepare()
         args = ctx.args
+        stats.begin()
         ctx.preprocess_images()
         log.info(f"Classification benchmark {version}")
         log.info(f"Starting inference in synchronous mode")
@@ -28,14 +31,13 @@ class Classify:
             # assuming batch size = 1
             for idx in range(len(ctx.files)):
                 ctx.preprocess_batch(idx)
-                t1 = time.perf_counter()
                 # inference
+                stats.mark()
                 res = args.network.infer(inputs={args.input_blob: args.np_images})
-                args.inference_duration += time.perf_counter() - t1
-                if not self.check_results(res, idx):
-                    args.failed += 1
-                args.total += 1
-        ctx.show_stats()
+                failed = not self.check_results(res, idx)
+                stats.bump(failed)
+        stats.end()
+        log.info(str(stats))
         log.info(f"END")
 
     def check_results(self, result, idx):

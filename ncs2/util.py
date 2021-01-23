@@ -25,21 +25,16 @@ class Util:
         if not os.path.exists(args.input):
             log.error(f"{args.input} not found")
             exit(0)
-        args.t0 = time.perf_counter()
         args.device = "MYRIAD"
         args.verbose = 0
-        # accumulates inference time
-        args.inference_duration = 0
-        args.total = 0
         args.idx = 0
-        args.failed = 0
         self.args = args
-        log.info("Creating Inference Engine")
+        log.info(f"Creating Inference Engine, image {args.device}")
         self.core = IECore()
-        self.count = 0
         self.images = []
         self.files = []
         self.model = ""
+        self.count = 0
 
     def count_images(self):
         return self.count_or_load_images(True)
@@ -131,7 +126,7 @@ class Util:
             file = self.files[i]
             image = cv2.imread(file)
             if image.shape[:-1] != (self.args.h, self.args.w):
-                log.info(f"resize from {image.shape[:-1]} to {(self.args.h, self.args.w)}")
+                # log.info(f"resize from {image.shape[:-1]} to {(self.args.h, self.args.w)}")
                 image = cv2.resize(image, (self.args.w, self.args.h))
             # Change data layout from HWC to CHW
             self.args.np_images[i-idx] = image.transpose((2, 0, 1))
@@ -182,16 +177,6 @@ class Util:
         log.debug(f"h {self.args.h}, w {self.args.w}")
         self.args.size = (self.args.w, self.args.h)
         return
-
-    def show_stats(self):
-        dur = time.perf_counter() - self.args.t0
-        avg = (self.args.inference_duration * 1000) / self.args.total
-        log.info(f"  Total images: {self.args.total}, not classified: {self.args.failed}")
-        log.info(f"Inference time: {self.args.inference_duration*1000:.0f} ms")
-        log.info(f"       Average: {avg:.2f} ms")
-        log.info(f"  Elapsed time: {dur*1000:.0f} ms")
-        # if out_dir:
-        #     log.info(f"Results are in {out_dir}")
 
 
 if __name__ == '__main__':
