@@ -1,14 +1,16 @@
-import os
-from argparse import ArgumentParser, SUPPRESS
+from argparse import ArgumentParser
 
 
-class ArgParser:
+class Config:
 
-    def parse_args(self):
+    def __init(self):
+        pass
+
+    def parse(self):
         parser = ArgumentParser()
 
         parser.add_argument("-i", "--input", help="Required. Path to a image or folder with images.",
-                            default="../../images",
+                            default="../images",
                             type=str)
         # todo: use Path.glob
         parser.add_argument("-r", "--re_path", help="Optional.",
@@ -16,11 +18,11 @@ class ArgParser:
                             type=str)
 
         parser.add_argument("-m", "--model", help="Required. Path to an .xml or .onnx file with a trained model.",
-                            default="../../models/squeezenet1.1/FP16/squeezenet1.1.xml",
+                            default="../models/squeezenet1.1/FP16/squeezenet1.1.xml",
                             type=str)
 
         parser.add_argument("-l", "--labels", help="Optional. Path to a labels mapping file",
-                            default="../../models/squeezenet1.1/FP16/squeezenet1.1.labels",
+                            default="../models/squeezenet1.1/FP16/squeezenet1.1.labels",
                             type=str)
 
         parser.add_argument("-d", "--device",
@@ -58,15 +60,10 @@ class ArgParser:
                             type=int,
                             default=2)
 
-        args = parser.parse_args()
-        return args
-
-
-def test():
-    ap = ArgParser()
-    args = ap.parse_args()
-    assert args.top == 3
+        return parser.parse_args()
 
 
 if __name__ == '__main__':
-    test()
+    ap = Config()
+    args = ap.parse()
+    assert args.top == 3

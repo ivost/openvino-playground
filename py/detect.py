@@ -10,7 +10,7 @@ import numpy as np
 from openvino.inference_engine import IECore
 
 from common import util
-from common.arg_parser import parse_args
+from common.context import parse_args
 
 version = "v.2021.1.22"
 
