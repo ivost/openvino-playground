@@ -2,7 +2,6 @@ import logging as log
 import os
 import re
 import shutil
-import sys
 import time
 from os import listdir
 from os.path import join
@@ -13,22 +12,12 @@ import numpy as np
 from PIL import Image
 from openvino.inference_engine import IECore
 
-from ncs2.config import Config
 
+class ImageProc:
 
-class Util:
-
-    def __init__(self, log_level=log.INFO):
-        log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log_level, stream=sys.stdout)
-        ap = Config()
-        args = ap.parse()
-        if not os.path.exists(args.input):
-            log.error(f"{args.input} not found")
-            exit(0)
-        args.device = "MYRIAD"
-        args.verbose = 0
-        args.idx = 0
+    def __init__(self, args):
         self.args = args
+        args.device = args.device or "MYRIAD"
         log.info(f"Creating Inference Engine, image {args.device}")
         self.core = IECore()
         self.images = []
@@ -180,9 +169,7 @@ class Util:
 
 
 if __name__ == '__main__':
-    util = Util()
-    assert util.args.top == 3
-
-    util.prepare()
-    util.preprocess_images()
+    img_proc = ImageProc()
+    img_proc.prepare()
+    img_proc.preprocess_images()
 

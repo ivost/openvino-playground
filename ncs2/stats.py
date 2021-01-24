@@ -45,12 +45,13 @@ class Stats:
         if self.begin_time > self.end_time:
             self.end_time = time.perf_counter()
         dur = self.end_time - self.begin_time
-        str = f"  Elapsed time: {dur*1000:.0f} ms\n"
+        str = f"\n  Elapsed time: {dur*1000:.0f} ms\n"
         if dur > 0 and self.total_count > 0:
             avg = (self.process_duration * 1000) / self.total_count
-            str += f"\n  Total images: {self.total_count}, failed: {self.failed_count}\n"
+            ips = int(1000/avg)
+            str += f"  Total images: {self.total_count}, failed: {self.failed_count}\n"
             str += f"Inference time: {self.process_duration*1000:.0f} ms\n"
-            str += f"       Average: {avg:.2f} ms\n"
+            str += f"       Average: {avg:.2f} ms, {ips} inf/sec\n"
         return str
 
 

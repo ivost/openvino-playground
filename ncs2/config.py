@@ -27,7 +27,7 @@ class Config:
 
         parser.add_argument("-d", "--device",
                             help="Optional. Target device: MYRIAD, CPU, GPU, FPGA, HDDL, or HETERO.",
-                            default="CPU",
+                            default="",
                             type=str)
 
         parser.add_argument("-o", "--output", help="Optional. Path to output directory.",
@@ -38,7 +38,7 @@ class Config:
                             default=0, type=int)
         parser.add_argument("-n", "--count",
                             help="Optional. Max number of images to process",
-                            default=10, type=int)
+                            default=100, type=int)
         parser.add_argument("-c", "--confidence",
                             help="Optional. Min confidence",
                             default=0.4, type=float)
@@ -53,12 +53,12 @@ class Config:
                             default=3,
                             type=int)
         parser.add_argument("--repeat", help="Number of loops over input",
-                            default=1,
+                            default=4,
                             type=int)
         parser.add_argument("-v", "--verbose",
-                            help="Optional verbosity level. Use for debugging",
+                            help="Optional verbosity level. Used for debugging",
                             type=int,
-                            default=2)
+                            default=0)
 
         return parser.parse_args()
 

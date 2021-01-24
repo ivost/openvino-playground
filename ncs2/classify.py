@@ -1,47 +1,59 @@
 import logging as log
-import time
+import sys
+import os
+from ncs2.config import Config
 
 import numpy as np
 
 from ncs2.stats import Stats
-from ncs2.util import Util
+from ncs2.imageproc import ImageProc
 
 version = "v.2021.1.23"
 
 
 class Classify:
 
-    def __init__(self):
-        self.util = Util()
+    def __init__(self, log_level=log.INFO):
+        log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log_level, stream=sys.stdout)
+        config = Config()
+        args = config.parse()
+        if not os.path.exists(args.input):
+            log.error(f"{args.input} not found")
+            exit(0)
+        args.verbose = 0
+        self.args = args
 
     def main(self):
-        ctx = self.util
+        config = self.args
+        img_proc = ImageProc(config)
         stats = Stats()
-        ctx.prepare()
-        args = ctx.args
+        img_proc.prepare()
         stats.begin()
-        ctx.preprocess_images()
+        img_proc.preprocess_images()
         log.info(f"Classification benchmark {version}")
         log.info(f"Starting inference in synchronous mode")
-        log.info(f"{len(ctx.files)} images")
-        log.info(f"repeating {args.repeat} time(s)")
+        log.info(f"{len(img_proc.files)} images")
+        log.info(f"repeating {config.repeat} time(s)")
         log.info(f"START")
 
-        for _ in range(args.repeat):
+        for _ in range(config.repeat):
+            # if config.verbose > 0:
+            print(".", end="", flush=True)
             # assuming batch size = 1
-            for idx in range(len(ctx.files)):
-                ctx.preprocess_batch(idx)
+            for idx in range(len(img_proc.files)):
+                img_proc.preprocess_batch(idx)
                 # inference
                 stats.mark()
-                res = args.network.infer(inputs={args.input_blob: args.np_images})
+                res = config.network.infer(inputs={config.input_blob: config.np_images})
                 failed = not self.check_results(res, idx)
                 stats.bump(failed)
         stats.end()
+        print("")
         log.info(str(stats))
         log.info(f"END")
 
     def check_results(self, result, idx):
-        args = self.util.args
+        args = self.args
         min_prob = 0.25
         res = result[args.out_blob]
 
