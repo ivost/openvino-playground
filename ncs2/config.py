@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 class Config:
 
     def __init(self):
+        # log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log.INFO, stream=sys.stdout)
         pass
 
     def parse(self):

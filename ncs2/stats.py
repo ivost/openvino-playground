@@ -41,7 +41,7 @@ class Stats:
         if is_error:
             self.failed_count += 1
 
-    def __str__(self):
+    def summary(self):
         if self.begin_time > self.end_time:
             self.end_time = time.perf_counter()
         dur = self.end_time - self.begin_time
@@ -53,6 +53,9 @@ class Stats:
             str += f"Inference time: {self.process_duration*1000:.0f} ms\n"
             str += f"       Average: {avg:.2f} ms, {ips} inf/sec\n"
         return str
+
+    def __str__(self):
+        return self.summary()
 
 
 if __name__ == '__main__':
