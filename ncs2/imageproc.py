@@ -11,18 +11,25 @@ import cv2
 import numpy as np
 from PIL import Image
 from openvino.inference_engine import IECore
+import ngraph as ng
 
 
 class ImageProc:
 
     def __init__(self, args):
+        if not os.path.exists(args.model):
+            log.error(f"{args.model} not found")
+            exit(4)
+        if not os.path.exists(args.input):
+            log.error(f"{args.input} not found")
+            exit(4)
         self.args = args
-        args.device = args.device or "MYRIAD"
-        log.info(f"Creating Inference Engine, image {args.device}")
+        log.info(f"Creating Inference Engine, device {args.device}")
         self.core = IECore()
         self.images = []
         self.files = []
-        self.model = ""
+        self.input = args.input
+        self.model = args.model
         self.count = 0
 
     def count_images(self):
@@ -132,6 +139,8 @@ class ImageProc:
         shutil.copy2(src_file_path, dest_dir_path)
 
     def prepare(self):
+        model_path = Path(self.model)
+        self.model = model_path.absolute()
         # check how many images are available
         cnt = self.count_images()
         if cnt < self.count:
@@ -144,27 +153,27 @@ class ImageProc:
 
         log.info(f"Loaded {len(self.files)} image(s)")
         log.info(f"Image preparation")
-        self.model = self.args.model
-        assert Path(self.model).exists()
+
         # initialize openvino engine
         self.init_engine()
-        log.info(f"Loading network: {self.model}")
         self.args.network = self.core.load_network(network=self.args.net, device_name=self.args.device)
-        log.info(f"device {self.args.device}")
-        self.preprocess_images()
 
     def init_engine(self):
         # Plugin initialization for specified device and load extensions library if specified
         # Read a model in OpenVINO Intermediate Representation (.xml and .bin files) or ONNX (.onnx file) format
-        log.debug(f"Loading network: {self.model}")
-        self.args.net = self.core.read_network(self.model)
-        assert len(self.args.net.input_info.keys()) == 1, "Sample supports only single input topologies"
-        assert len(self.args.net.outputs) == 1, "Sample supports only single output topologies"
-        self.args.input_blob = next(iter(self.args.net.input_info))
-        self.args.out_blob = next(iter(self.args.net.outputs))
-        self.args.batch_size, self.args.c, self.args.h, self.args.w = self.args.net.input_info[self.args.input_blob].input_data.shape
+        log.info(f"Loading network: {self.model}")
+        net = self.core.read_network(self.model)
+        assert len(net.input_info.keys()) == 1, "Sample supports only single input topologies"
+        assert len(net.outputs) == 1, "Sample supports only single output topologies"
+        func = ng.function_from_cnn(net)
+        self.args.ops = func.get_ordered_ops()
+        #todo: refactor with class
+        self.args.input_blob = next(iter(net.input_info))
+        self.args.out_blob = next(iter(net.outputs))
+        self.args.batch_size, self.args.c, self.args.h, self.args.w = net.input_info[self.args.input_blob].input_data.shape
         log.debug(f"h {self.args.h}, w {self.args.w}")
         self.args.size = (self.args.w, self.args.h)
+        self.args.net = net
         return
 
 

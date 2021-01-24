@@ -1,12 +1,12 @@
 import logging as log
-import sys
 import os
-from ncs2.config import Config
+import sys
 
 import numpy as np
 
-from ncs2.stats import Stats
+from ncs2.config import Config
 from ncs2.imageproc import ImageProc
+from ncs2.stats import Stats
 
 version = "v.2021.1.23"
 
@@ -17,21 +17,18 @@ class Classify:
         log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log_level, stream=sys.stdout)
         config = Config()
         args = config.parse()
-        if not os.path.exists(args.input):
-            log.error(f"{args.input} not found")
-            exit(0)
         args.verbose = 0
         self.args = args
 
     def main(self):
         config = self.args
+        log.info(f"Classification benchmark {version}")
+        log.info(f"Starting inference in synchronous mode")
         img_proc = ImageProc(config)
         stats = Stats()
         img_proc.prepare()
         stats.begin()
         img_proc.preprocess_images()
-        log.info(f"Classification benchmark {version}")
-        log.info(f"Starting inference in synchronous mode")
         log.info(f"{len(img_proc.files)} images")
         log.info(f"repeating {config.repeat} time(s)")
         log.info(f"START")
