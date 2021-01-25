@@ -15,7 +15,7 @@ from ncs2.stats import Stats
 
 class Engine:
 
-    def __init__(self, message, version, model_override = "", log_level=log.INFO):
+    def __init__(self, message, version, model_override="", log_level=log.INFO):
         log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log_level, stream=sys.stdout)
         config = Config()
         args = config.parse()
