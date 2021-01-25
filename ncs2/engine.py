@@ -1,7 +1,5 @@
 import logging as log
-import os
 import sys
-from pathlib import Path
 
 import cv2
 import ngraph as ng
@@ -10,38 +8,34 @@ from openvino.inference_engine import IECore
 
 from ncs2.config import Config
 from ncs2.imageproc import ImageProc
-from ncs2.stats import Stats
 
 
 class Engine:
 
-    def __init__(self, message, version, model_override="", log_level=log.INFO):
+    def __init__(self, message, version, config_ini, log_level=log.INFO):
         log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log_level, stream=sys.stdout)
-        config = Config()
-        args = config.parse()
-        if not os.path.exists(args.input):
-            log.error(f"{args.input} not found")
-            exit(4)
 
-        if len(model_override) > 0:
-            args.model = model_override
+        self.c = Config()
+        self.c.read(config_ini)
+        # print(self.c)
+        n = self.c.network
+        self.model = Config.existing_path(n.model)
+        self.weights = Config.existing_path(n.weights)
+        self.model = Config.existing_path(n.model)
+        self.labels = Config.existing_path(n.labels)
 
-        if not os.path.exists(args.model):
-            log.error(f"{args.model} not found")
-            exit(4)
-
-        args.verbose = 0
+        self.input = Config.existing_path(self.c.input.images)
+        # self.c.verbose = 1
         log.info(f"{message} {version}")
-        log.info(f"Creating OpenVINO Inference Engine, device {args.device}")
-        self.core = IECore()
-        self.model = Path(args.model).absolute()
+        log.info(f"Creating OpenVINO Inference Engine, device {n.device}")
+
         # initialize openvino engine
+        self.core = IECore()
         # Plugin initialization for specified device and load extensions library if specified
         # Read a model in OpenVINO Intermediate Representation (.xml and .bin files) or ONNX (.onnx file) format
         log.info(f"Loading model: {self.model}")
-        net = self.core.read_network(self.model)
-        self.network = self.core.load_network(network=net, device_name=args.device)
-
+        net = self.core.read_network(model=self.model)
+        self.network = self.core.load_network(network=net, device_name=n.device)
         assert len(net.input_info.keys()) == 1, "Sample supports only single input topologies"
         assert len(net.outputs) == 1, "Sample supports only single output topologies"
         func = ng.function_from_cnn(net)
@@ -53,14 +47,11 @@ class Engine:
         self.size = (self.width, self.height)
         self.net = net
 
-        self.img_proc = ImageProc(args)
+        self.img_proc = ImageProc(self.c)
         self.img_proc.prepare()
-
-        self.args = args
         return
 
     def prepare_input(self, images):
-        args = self.args
         net = self.net
         # log.("Preparing input blobs")
         input_name, input_info_name = "", ""
@@ -88,7 +79,6 @@ class Engine:
         return data
 
     def model_check(self):
-        args = self.args
         net = self.net
         # log.info('Preparing output blobs')
         output_name, output_info = "", net.outputs[next(iter(net.outputs.keys()))]
@@ -116,32 +106,38 @@ class Engine:
         return True
 
     def process_classification_results(self, result, idx):
-        args = self.args
-        min_prob = 0.25
+        # from config
+        min_prob = float(self.c.network.confidence)
+        top = int(self.c.network.top)
         res = result[self.out_blob]
+        verbose = int(self.c.output.verbose)
 
-        if args.labels:
-            with open(args.labels, 'r') as f:
-                labels_map = [x.split(sep=' ', maxsplit=1)[-1].strip() for x in f]
-        else:
-            labels_map = None
-            return
+        # todo: cache early
+        # if self.labels:
+        #     with open(self.labels, 'r') as f:
+        #         labels_map = [x.split(sep=' ', maxsplit=1)[-1].strip() for x in f]
+        # else:
+        #     return
 
+        with open(self.labels, 'r') as f:
+            labels_map = [x.split(sep=' ', maxsplit=1)[-1].strip() for x in f]
+
+        files = self.img_proc.files
         for i, probs in enumerate(res):
             probs = np.squeeze(probs)
-            top_ind = np.argsort(probs)[-args.top:][::-1]
-            if args.verbose > 0:
-                print("\nImage {}/{} - {}".format(idx + 1, len(args.files), args.files[idx]))
+            top_ind = np.argsort(probs)[-top:][::-1]
+            if verbose > 0:
+                print("\nImage {}/{} - {}".format(idx + 1, len(files), files[idx]))
             count = 0
             for id in top_ind:
                 if probs[id] < min_prob:
                     break
                 label = labels_map[id] if labels_map else "{}".format(id)
-                if args.verbose > 0:
+                if verbose > 0:
                     print("{:4.1%} {} [{}]".format(probs[id], label, id))
                 count += 1
             if count == 0:
-                if args.verbose > 0:
+                if verbose > 0:
                     print("--")
             return count > 0
 

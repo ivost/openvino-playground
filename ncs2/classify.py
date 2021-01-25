@@ -15,17 +15,17 @@ version = "v.2021.1.24"
 class Classify(Engine):
 
     def __init__(self, log_level=log.INFO):
-        super().__init__("Classification benchmark", "v.2021.1.24")
+        super().__init__("Classification benchmark", "v.2021.1.25", "classify.ini")
 
     def main(self):
+        repeat = int(self.c.input.repeat)
         stats = Stats()
-        args = self.args
         stats.begin()
         img_proc = self.img_proc
         img_proc.preprocess_images(self.size)
         log.info(f"{len(self.img_proc.files)} images")
-        log.info(f"repeating {args.repeat} time(s)")
-        for _ in range(args.repeat):
+        log.info(f"repeating {repeat} time(s)")
+        for _ in range(repeat):
             print(".", end="", flush=True)
             # assuming batch size = 1
             for idx in range(len(self.img_proc.files)):
@@ -41,7 +41,6 @@ class Classify(Engine):
         print("", flush=True)
         log.info(stats.summary())
         log.info(stats.summary())
-
 
 
 if __name__ == '__main__':

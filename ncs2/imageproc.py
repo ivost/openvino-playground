@@ -1,8 +1,6 @@
 import logging as log
 import os
-import re
 import shutil
-import sys
 import time
 from os import listdir
 from os.path import join
@@ -17,11 +15,11 @@ from ncs2.config import Config
 
 class ImageProc:
 
-    def __init__(self, args):
-        self.args = args
+    def __init__(self, c):
+        self.config = c
         self.images = []
         self.files = []
-        self.input = args.input
+        self.input = c.input.images
         self.count = 0
 
     def prepare(self):
@@ -44,33 +42,32 @@ class ImageProc:
 
     # todo: change regex to pathlib.glob
     def count_or_load_images(self, count_only):
-        path = os.path.abspath(self.args.input)
+        path = self.input
         pat = None
-        if not hasattr(self.args, 're_path') or self.args.re_path is None:
-            self.args.re_path = None
-        else:
-            rex = self.args.re_path
-            try:
-                pat = re.compile(rex)
-            except Exception as err:
-                log.error(f"Invalid regex {rex} {err}")
-                return 0
-
-        if self.args.re_path is None:
-            if not os.path.exists(path):
-                return 0
-            if os.path.isfile(path):
-                if not count_only:
-                    if self.args.verbose > 0:
-                        log.debug(f"adding image {path}")
-                    self.files.append(path)
-                return 1
-            if not os.path.isdir(path):
-                return 0
+        # if not hasattr(self.config, 're_path') or self.config.re_path is None:
+        #     self.config.re_path = None
+        # else:
+        #     rex = self.config.re_path
+        #     try:
+        #         pat = re.compile(rex)
+        #     except Exception as err:
+        #         log.error(f"Invalid regex {rex} {err}")
+        #         return 0
+        #
+        # if self.config.re_path is None:
+        #     if not os.path.exists(path):
+        #         return 0
+        if os.path.isfile(path):
+            if not count_only:
+                log.debug(f"adding image {path}")
+                self.files.append(path)
+            return 1
+        if not os.path.isdir(path):
+            return 0
 
         count = 0
-        limit = self.args.start + self.args.count
-        idx = self.args.start
+        idx = int(self.config.input.start)
+        limit = idx + int(self.config.input.count)
         for f in listdir(path):
             if not count_only and idx >= limit:
                 break
@@ -83,8 +80,7 @@ class ImageProc:
                 count += 1
                 idx += 1
                 if not count_only:
-                    if self.args.verbose > 1:
-                        log.debug(f"adding image {count}/{limit}  {fp}")
+                    log.debug(f"adding image {count}/{limit}  {fp}")
                     self.files.append(fp)
                 continue
             # regex
@@ -95,22 +91,20 @@ class ImageProc:
             count += 1
             idx += 1
             if not count_only:
-                if self.args.verbose > 1:
-                    log.debug(f"adding image {count}/{limit}  {fp}")
+                log.debug(f"adding image {count}/{limit}  {fp}")
                 self.files.append(fp)
 
-        if self.args.verbose > 1:
-            log.debug(f"{count} images")
+        log.debug(f"{count} images")
         return count
 
     def preprocess_images(self, size):
         result = []
         start = time.perf_counter()
         for file in self.files:
+            # flat 1-level read
             if Path(file).is_dir():
                 continue
-            if self.args.verbose > 1:
-                log.debug(f"file {file}")
+            log.debug(f"file {file}")
             result.append(Image.open(file).convert('RGB').resize(size, Image.ANTIALIAS))
 
         duration = (time.perf_counter() - start) / 1000
@@ -142,15 +136,14 @@ class ImageProc:
         dest = Path(dest_dir_path, src_file_path.name)
         if dest.exists():
             return False
-        if self.args.verbose > 1:
-            log.debug(f"Copying {src_file_path.name} to {dest_dir_path}")
+        log.debug(f"Copying {src_file_path.name} to {dest_dir_path}")
         shutil.copy2(src_file_path, dest_dir_path)
 
 
 if __name__ == '__main__':
-    config = Config()
-    args = config.parse()
-    img_proc = ImageProc(args)
+    c = Config()
+    c.read("classify.ini")
+    img_proc = ImageProc(c)
     img_proc.prepare()
     images = img_proc.preprocess_images((128, 128))
     assert len(images) > 0
