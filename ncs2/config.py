@@ -65,6 +65,35 @@ class Config:
 
 
 if __name__ == '__main__':
-    ap = Config()
-    args = ap.parse()
-    assert args.top == 3
+    import configparser
+    import collections
+
+    config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+    config.read('config.ini')
+    # print(config.sections)
+
+    for name in config.sections():
+        # print(name)
+        section = config[name]
+        dict = {k: section[k] for k in section}
+        # print(f"dict {dict}")
+        tup = collections.namedtuple(name, dict)
+        setattr(config, name, tup(**dict))
+
+    print(f"config['model']['weights']: {config['model']['weights']}")
+    print(f"model.weights: {config.model.weights}")
+    print(f"output.dir: {config.output.dir}")
+
+    # section_name = "input"
+    # section = config[section_name]
+    # InputTuple = collections.namedtuple(section_name, dict)
+    # input = InputTuple(**dict)
+    # print(f"images: {input.images}")
+    # print(f"weights: {input.weights}")
+    # print(f"display: {input.display}")
+    # config.input = input
+
+
+    # ap = Config()
+    # args = ap.parse()
+    # assert args.top == 3
