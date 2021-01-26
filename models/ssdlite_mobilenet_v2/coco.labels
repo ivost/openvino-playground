@@ -9,6 +9,7 @@
 9 boat
 10 traffic light
 11 fire hydrant
+12 street sign
 13 stop sign
 14 parking meter
 15 bench
@@ -22,8 +23,11 @@
 23 bear
 24 zebra
 25 giraffe
+26 hat
 27 backpack
 28 umbrella
+29 show
+30 eyeglasses
 31 handbag
 32 tie
 33 suitcase
@@ -38,6 +42,7 @@
 42 surfboard
 43 tennis racket
 44 bottle
+45 plate
 46 wine glass
 47 cup
 48 fork
@@ -58,8 +63,12 @@
 63 couch
 64 potted plant
 65 bed
+66 mirror
 67 dining table
+68 windows
+69 desk
 70 toilet
+71 door
 72 tv
 73 laptop
 74 mouse
@@ -71,6 +80,7 @@
 80 toaster
 81 sink
 82 refrigerator
+83 blender
 84 book
 85 clock
 86 vase
@@ -78,3 +88,4 @@
 88 teddy bear
 89 hair drier
 90 toothbrush
+91 hairbrush

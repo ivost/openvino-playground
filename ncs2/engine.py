@@ -141,14 +141,15 @@ class Engine:
         boxes, classes = {}, {}
         data = res[0][0]
 
-        top = 3
-        verbose = 1
-        min_conf = 0.1
+        min_conf = float(self.c.network.confidence)
+        top = int(self.c.network.top)
+        verbose = int(self.c.output.verbose)
+
         ih = iw = 0
         # draw rectangles over original image
         for count, proposal in enumerate(data):
             conf = proposal[2]
-            if conf < 0.0001:
+            if conf < min_conf:
                 continue
             imid = np.int(proposal[0])
             ih, iw = images_hw[imid]
@@ -161,17 +162,17 @@ class Engine:
             ymin = np.int(ih * proposal[4])
             xmax = np.int(iw * proposal[5])
             ymax = np.int(ih * proposal[6])
-            if conf >= min_conf:
-                if imid not in boxes.keys():
-                    boxes[imid] = []
-                boxes[imid].append([xmin, ymin, xmax, ymax])
-                if imid not in classes.keys():
-                    classes[imid] = []
-                log.debug(f"conf {conf}, label {label}")
-                classes[imid].append(label)
-                count += 1
-                if count > top:
-                    break
+            if imid not in boxes.keys():
+                boxes[imid] = []
+            boxes[imid].append([xmin, ymin, xmax, ymax])
+            if imid not in classes.keys():
+                classes[imid] = []
+            classes[imid].append(label)
+            log.debug(f"conf {conf}, label {label}")
+            count += 1
+            if count > top:
+                break
+
         if ih > 0 and iw > 0:
             self.display_result(img_file, classes, boxes, ih, iw)
 
@@ -191,8 +192,8 @@ class Engine:
                 text = classes[imid][idx]
                 idx += 1
                 x, y = box[0], box[1]
-                x1 = x + 12 if x < 20 else x - 12
-                y1 = x + 32 if y < 40 else y - 32
+                x1 = x + 10 if x < 10 else x - 10
+                y1 = y + 20 if y < 20 else y - 20
                 cv2.rectangle(image, (x, y), (box[2], box[3]), color, line_type)
                 cv2.putText(image, text, (x1, y1), font, font_scale, font_color, line_type)
 
