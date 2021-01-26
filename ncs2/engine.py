@@ -14,33 +14,36 @@ class Engine:
 
     def __init__(self, message, version, config_ini, log_level=log.INFO):
         log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log_level, stream=sys.stdout)
+        log.info(f"\n{message} {version}\n")
 
         self.c = Config()
         self.c.read(config_ini)
-        # print(self.c)
-        n = self.c.network
-        self.model = Config.existing_path(n.model)
-        self.weights = Config.existing_path(n.weights)
-        self.model = Config.existing_path(n.model)
-        self.labels = Config.existing_path(n.labels)
 
+        n = self.c.network
+
+        # self.model = Config.existing_path(n.model)
+        # self.weights = Config.existing_path(n.weights)
+        model = Config.existing_path(n.model)
         self.input = Config.existing_path(self.c.input.images)
-        # self.c.verbose = 1
-        log.info(f"{message} {version}")
-        log.info(f"Creating OpenVINO Inference Engine, device {n.device}")
+        labels = Config.existing_path(n.labels)
+
+        with open(labels, 'r') as file:
+            self.labels = [line.split(sep=' ', maxsplit=1)[-1].strip() for line in file]
+            log.debug(f"{len(self.labels)} labels")
 
         # initialize openvino engine
+        log.info(f"Initializing OpenVINO Inference Engine, device {n.device}")
         self.core = IECore()
         # Plugin initialization for specified device and load extensions library if specified
         # Read a model in OpenVINO Intermediate Representation (.xml and .bin files) or ONNX (.onnx file) format
-        log.info(f"Loading model: {self.model}")
-        net = self.core.read_network(model=self.model)
+        log.info(f"Loading model: {model}")
+        net = self.core.read_network(model=model)
         self.network = self.core.load_network(network=net, device_name=n.device)
         assert len(net.input_info.keys()) == 1, "Sample supports only single input topologies"
         assert len(net.outputs) == 1, "Sample supports only single output topologies"
         func = ng.function_from_cnn(net)
         self.ops = func.get_ordered_ops()
-        # todo: refactor with class?
+
         self.input_blob = next(iter(net.input_info))
         self.out_blob = next(iter(net.outputs))
         self.batch_size, self.channels, self.height, self.width = net.input_info[self.input_blob].input_data.shape
@@ -111,17 +114,6 @@ class Engine:
         top = int(self.c.network.top)
         res = result[self.out_blob]
         verbose = int(self.c.output.verbose)
-
-        # todo: cache early
-        # if self.labels:
-        #     with open(self.labels, 'r') as f:
-        #         labels_map = [x.split(sep=' ', maxsplit=1)[-1].strip() for x in f]
-        # else:
-        #     return
-
-        with open(self.labels, 'r') as f:
-            labels_map = [x.split(sep=' ', maxsplit=1)[-1].strip() for x in f]
-
         files = self.img_proc.files
         for i, probs in enumerate(res):
             probs = np.squeeze(probs)
@@ -132,7 +124,9 @@ class Engine:
             for id in top_ind:
                 if probs[id] < min_prob:
                     break
-                label = labels_map[id] if labels_map else "{}".format(id)
+                label = str(id)
+                if self.labels and id < len(self.labels):
+                    label = self.labels[id]
                 if verbose > 0:
                     print("{:4.1%} {} [{}]".format(probs[id], label, id))
                 count += 1
@@ -141,62 +135,83 @@ class Engine:
                     print("--")
             return count > 0
 
-    def process_detection_results(self, res, images_hw):
-        min_conf = 0.25
+    def process_detection_results(self, res, img_file, images_hw):
         out_blob = self.out_blob
-        log.info(f"Processing results {out_blob}")
         res = res[out_blob]
         boxes, classes = {}, {}
         data = res[0][0]
+
+        top = 3
+        verbose = 1
+        min_conf = 0.1
+        ih = iw = 0
         # draw rectangles over original image
-        for number, proposal in enumerate(data):
-            if proposal[2] > 0:
-                imid = np.int(proposal[0])
-                ih, iw = images_hw[imid]
-                label = np.int(proposal[1])
-                # print("imid", imid, "id", proposal[1], "label", label, "iw", iw, "ih", ih)
-                confidence = proposal[2]
-                xmin = np.int(iw * proposal[3])
-                ymin = np.int(ih * proposal[4])
-                xmax = np.int(iw * proposal[5])
-                ymax = np.int(ih * proposal[6])
-                if confidence >= min_conf:
-                    # print("[{},{}] element, conf = {:.6}    ({},{})-({},{}) batch id : {}".format(number, label, confidence, xmin, ymin, xmax, ymax, imid))
-                    if imid not in boxes.keys():
-                        boxes[imid] = []
-                    boxes[imid].append([xmin, ymin, xmax, ymax])
-                    if imid not in classes.keys():
-                        classes[imid] = []
-                    classes[imid].append(label)
-                else:
-                    print()
+        for count, proposal in enumerate(data):
+            conf = proposal[2]
+            if conf < 0.0001:
+                continue
+            imid = np.int(proposal[0])
+            ih, iw = images_hw[imid]
+            idx = int(np.int(proposal[1]))
+            if self.labels and 0 < idx <= len(self.labels):
+                label = self.labels[idx-1]
+            else:
+                label = str(idx)
+            xmin = np.int(iw * proposal[3])
+            ymin = np.int(ih * proposal[4])
+            xmax = np.int(iw * proposal[5])
+            ymax = np.int(ih * proposal[6])
+            if conf >= min_conf:
+                if imid not in boxes.keys():
+                    boxes[imid] = []
+                boxes[imid].append([xmin, ymin, xmax, ymax])
+                if imid not in classes.keys():
+                    classes[imid] = []
+                log.debug(f"conf {conf}, label {label}")
+                classes[imid].append(label)
+                count += 1
+                if count > top:
+                    break
+        if ih > 0 and iw > 0:
+            self.display_result(img_file, classes, boxes, ih, iw)
 
-        # self.display_result(classes, boxes, ih, iw)
-
-    def display_result(self, classes, boxes, ih, iw):
-        files = self.img_proc.files
+    def display_result(self, img_file, classes, boxes, ih, iw):
         max_w = 640
         min_w = 600
+        # color = (232, 35, 244)
+        color = (0, 240, 240)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 1
+        font_color = color
+        line_type = 2
         for imid in classes:
-            result = cv2.imread(files[imid])
+            image = cv2.imread(img_file)
+            idx = 0
             for box in boxes[imid]:
-                cv2.rectangle(result, (box[0], box[1]), (box[2], box[3]), (232, 35, 244), 2)
+                text = classes[imid][idx]
+                idx += 1
+                x, y = box[0], box[1]
+                x1 = x + 12 if x < 20 else x - 12
+                y1 = x + 32 if y < 40 else y - 32
+                cv2.rectangle(image, (x, y), (box[2], box[3]), color, line_type)
+                cv2.putText(image, text, (x1, y1), font, font_scale, font_color, line_type)
+
             if iw > max_w:
                 r = max_w / iw
                 w = int(r*iw)
                 h = int(r*ih)
-                result = cv2.resize(result, (w, h))
+                image = cv2.resize(image, (w, h))
             else:
                 if iw < min_w:
                     r = min_w / iw
                     w = int(r * iw)
                     h = int(r * ih)
-                    result = cv2.resize(result, (w, h))
+                    image = cv2.resize(image, (w, h))
 
-            cv2.imwrite("/tmp/out.jpg", result)
+            cv2.imwrite("/tmp/out.jpg", image)
             log.info("Image /tmp/out.jpg created!")
 
-            cv2.imshow("result", result)
+            cv2.imshow("result", image)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
         return

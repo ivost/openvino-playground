@@ -113,14 +113,15 @@ class ImageProc:
         return result
 
     def preprocess_batch(self, idx, batch_size, channels, height, width):
-        log.debug(f"preprocess_batch idx {idx}, batch_size {batch_size}")
+        # log.debug(f"preprocess_batch idx {idx}, batch_size {batch_size}")
         np_images = np.ndarray(shape=(batch_size, channels, height, width))
         images_hw = []
 
         for i in range(idx, idx+batch_size):
-            if i >= len(self.files[i]):
+            if i >= len(self.files):
                 break
             file = self.files[i]
+            log.debug(f"file {file}")
             image = cv2.imread(file)
             ih, iw = image.shape[:-1]
             images_hw.append((ih, iw))

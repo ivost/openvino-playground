@@ -13,13 +13,13 @@ version = "v.2021.1.24"
 
 
 class Classify(Engine):
-
+    # todo cmd line arg to choose ini file
     def __init__(self, log_level=log.INFO):
         super().__init__("Classification benchmark", "v.2021.1.25", "classify.ini")
 
     def main(self):
-        repeat = int(self.c.input.repeat)
         stats = Stats()
+        repeat = int(self.c.input.repeat)
         stats.begin()
         img_proc = self.img_proc
         img_proc.preprocess_images(self.size)
@@ -39,7 +39,6 @@ class Classify(Engine):
                 ###############################
         stats.end()
         print("", flush=True)
-        log.info(stats.summary())
         log.info(stats.summary())
 
 
