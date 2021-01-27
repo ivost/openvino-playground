@@ -1,14 +1,9 @@
 from pathlib import Path
 
-import sys
-#print(sys.path)
-# ['/Users/ivo/Library/Application Support/JetBrains/Toolbox/apps/PyCharm-P/ch-0/203.6682.179/PyCharm.app/Contents/plugins/python/helpers/pydev', '/Users/ivo/Library/Application Support/JetBrains/Toolbox/apps/PyCharm-P/ch-0/203.6682.179/PyCharm.app/Contents/plugins/python/helpers/pycharm_display', '/Users/ivo/Library/Application Support/JetBrains/Toolbox/apps/PyCharm-P/ch-0/203.6682.179/PyCharm.app/Contents/plugins/python/helpers/third_party/thriftpy', '/Users/ivo/Library/Application Support/JetBrains/Toolbox/apps/PyCharm-P/ch-0/203.6682.179/PyCharm.app/Contents/plugins/python/helpers/pydev', '/Users/ivo/.pyenv/versions/3.7.9/lib/python37.zip', '/Users/ivo/.pyenv/versions/3.7.9/lib/python3.7', '/Users/ivo/.pyenv/versions/3.7.9/lib/python3.7/lib-dynload', '/Users/ivo/.pyenv/versions/3.7.9/lib/python3.7/site-packages', '/Users/ivo/Library/Application Support/JetBrains/Toolbox/apps/PyCharm-P/ch-0/203.6682.179/PyCharm.app/Contents/plugins/python/helpers/pycharm_matplotlib_backend', '/Users/ivo/github/myriad-playground']
-
+import cv2  # opencv - display the video stream
 import depthai  # access the camera and its data packets
 
 device = depthai.Device('', False)
-
-import cv2  # opencv - display the video stream
 
 # Create the pipeline using the 'previewout' stream, establishing the first connection to the device.
 pipeline = device.create_pipeline(config={
