@@ -67,7 +67,7 @@ def to_bbox_result(nn_data):
     arr = to_nn_result(nn_data)
 
     a = np.where(arr == -1)
-    if a[0]:
+    if a[0].size > 0:
         arr = arr[:np.where(arr == -1)[0][0]]
 
     arr = arr.reshape((arr.size // 7, 7))
@@ -149,7 +149,7 @@ class Main:
         face_in.setStreamName("face_in")
         face_nn = self.pipeline.createNeuralNetwork()
         face_nn.setBlobPath(
-            str(Path("models/face-detection-retail-0004/face-detection-retail-0004.blob").resolve().absolute()))
+            str(Path("../models/face-detection-retail-0004/face-detection-retail-0004.blob").resolve().absolute()))
         face_nn_xout = self.pipeline.createXLinkOut()
         face_nn_xout.setStreamName("face_nn")
         face_in.out.link(face_nn.input)
@@ -160,7 +160,7 @@ class Main:
         land_nn = self.pipeline.createNeuralNetwork()
         land_nn.setBlobPath(
             str(Path(
-                "models/landmarks-regression-retail-0009/landmarks-regression-retail-0009.blob").resolve().absolute())
+                "../models/landmarks-regression-retail-0009/landmarks-regression-retail-0009.blob").resolve().absolute())
         )
         land_nn_xin = self.pipeline.createXLinkIn()
         land_nn_xin.setStreamName("landmark_in")
@@ -173,7 +173,7 @@ class Main:
         print("Creating Head Pose Neural Network...")
         pose_nn = self.pipeline.createNeuralNetwork()
         pose_nn.setBlobPath(
-            str(Path("models/head-pose-estimation-adas-0001/head-pose-estimation-adas-0001.blob").resolve().absolute())
+            str(Path("../models/head-pose-estimation-adas-0001/head-pose-estimation-adas-0001.blob").resolve().absolute())
         )
         pose_nn_xin = self.pipeline.createXLinkIn()
         pose_nn_xin.setStreamName("pose_in")
@@ -186,7 +186,7 @@ class Main:
         print("Creating Gaze Estimation Neural Network...")
         gaze_nn = self.pipeline.createNeuralNetwork()
         gaze_nn.setBlobPath(
-            str(Path("models/gaze-estimation-adas-0002/gaze-estimation-adas-0002.blob").resolve().absolute())
+            str(Path("../models/gaze-estimation-adas-0002/gaze-estimation-adas-0002.blob").resolve().absolute())
         )
         gaze_nn_xin = self.pipeline.createXLinkIn()
         gaze_nn_xin.setStreamName("gaze_in")
