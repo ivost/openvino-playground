@@ -1,30 +1,50 @@
 import argparse
 from datetime import datetime, timedelta
+from math import cos, sin
 from pathlib import Path
+
 import cv2
 import numpy as np
-from math import cos, sin
+
 import depthai
 
+"""
+
+original
+https://github.com/LCTyrell/Gaze_estimation
+
+"""
+
 parser = argparse.ArgumentParser()
-parser.add_argument('-nd', '--no-debug', default=True, action="store_true", help="Prevent debug output")
-parser.add_argument('-cam', '--camera', action="store_true", help="Use DepthAI 4K RGB camera for inference (conflicts with -vid)")
-parser.add_argument('-vid', '--video', default="snl2.mp4", type=str, help="Path to video file to be used for inference (conflicts with -cam)")
+parser.add_argument('-nd', '--no_debug', default=False, action="store_true", help="Prevent debug output")
+parser.add_argument('-cam', '--camera', default=False, action="store_true",
+                    help="Use DepthAI 4K RGB camera for inference (conflicts with -vid)")
+parser.add_argument('-vid', '--video', default="demo.mp4", type=str,
+                    help="Path to video file to be used for inference (conflicts with -cam)")
 args = parser.parse_args()
 
 debug = not args.no_debug
 
 if args.camera and args.video:
-    raise ValueError("Incorrect command line parameters! \"-cam\" cannot be used with \"-vid\"!")
+    # raise ValueError("Incorrect command line parameters! \"-cam\" cannot be used with \"-vid\"!")
+    args.video = False
 elif args.camera is False and args.video is None:
-    raise ValueError("Missing inference source! Either use \"-cam\" to run on DepthAI camera or \"-vid <path>\" to run on video file")
+    raise ValueError(
+        "Missing inference source! Either use \"-cam\" to run on DepthAI camera or \"-vid <path>\" to run on video file")
 
 
 def wait_for_results(queue):
+
     start = datetime.now()
+
     while not queue.has():
-        if datetime.now() - start > timedelta(seconds=1):
+        delta = datetime.now() - start
+        if delta.seconds > 1:
+            print(f"no data {datetime.now()} in {delta.seconds} sec")
             return False
+
+    # delta = (datetime.now() - start).microseconds / 1000
+    # print(f"got data in {delta} ms, {datetime.now()}")
     return True
 
 
@@ -45,7 +65,11 @@ def to_tensor_result(packet):
 
 def to_bbox_result(nn_data):
     arr = to_nn_result(nn_data)
-    arr = arr[:np.where(arr == -1)[0][0]]
+
+    a = np.where(arr == -1)
+    if a[0]:
+        arr = arr[:np.where(arr == -1)[0][0]]
+
     arr = arr.reshape((arr.size // 7, 7))
     return arr
 
@@ -119,23 +143,24 @@ class Main:
             cam_xout.setStreamName("cam_out")
             cam.preview.link(cam_xout.input)
 
-
         # NeuralNetwork
         print("Creating Face Detection Neural Network...")
         face_in = self.pipeline.createXLinkIn()
         face_in.setStreamName("face_in")
         face_nn = self.pipeline.createNeuralNetwork()
-        face_nn.setBlobPath(str(Path("models/face-detection-retail-0004/face-detection-retail-0004.blob").resolve().absolute()))
+        face_nn.setBlobPath(
+            str(Path("models/face-detection-retail-0004/face-detection-retail-0004.blob").resolve().absolute()))
         face_nn_xout = self.pipeline.createXLinkOut()
         face_nn_xout.setStreamName("face_nn")
         face_in.out.link(face_nn.input)
         face_nn.out.link(face_nn_xout.input)
-        
+
         # NeuralNetwork
         print("Creating Landmarks Detection Neural Network...")
         land_nn = self.pipeline.createNeuralNetwork()
         land_nn.setBlobPath(
-            str(Path("models/landmarks-regression-retail-0009/landmarks-regression-retail-0009.blob").resolve().absolute())
+            str(Path(
+                "models/landmarks-regression-retail-0009/landmarks-regression-retail-0009.blob").resolve().absolute())
         )
         land_nn_xin = self.pipeline.createXLinkIn()
         land_nn_xin.setStreamName("landmark_in")
@@ -209,7 +234,9 @@ class Main:
 
     def run_face(self):
         nn_data = run_nn(self.face_in, self.face_nn, {"data": to_planar(self.frame, (300, 300))})
+        # print(nn_data.getFirstLayerFp16())
         results = to_bbox_result(nn_data)
+
         self.face_coords = [
             frame_norm(self.frame, *obj[3:7])
             for obj in results
@@ -218,9 +245,9 @@ class Main:
         if len(self.face_coords) == 0:
             return False
         self.face_frame = self.frame[
-            self.face_coords[0][1]:self.face_coords[0][3],
-            self.face_coords[0][0]:self.face_coords[0][2]
-        ]
+                          self.face_coords[0][1]:self.face_coords[0][3],
+                          self.face_coords[0][0]:self.face_coords[0][2]
+                          ]
         if debug:
             for bbox in self.face_coords:
                 self.draw_bbox(bbox, (10, 245, 10))
@@ -280,11 +307,11 @@ class Main:
             self.run_landmark()
             self.run_pose()
             self.run_gaze()
-            print(self.gaze)
+            # print(self.gaze)
 
         if debug:
             aspect_ratio = self.frame.shape[1] / self.frame.shape[0]
-            cv2.imshow("Camera_view", cv2.resize(self.debug_frame, ( int(900),  int(900 / aspect_ratio))))
+            cv2.imshow("Camera_view", cv2.resize(self.debug_frame, (int(900), int(900 / aspect_ratio))))
             if cv2.waitKey(1) == ord('q'):
                 cv2.destroyAllWindows()
                 raise StopIteration()
@@ -305,12 +332,12 @@ class Main:
 
     def run_camera(self):
         while True:
-            self.frame = np.array(self.cam_out.get().getData()).reshape((3, 300, 300)).transpose(1, 2, 0).astype(np.uint8)
+            self.frame = np.array(self.cam_out.get().getData()).reshape((3, 300, 300)).transpose(1, 2, 0).astype(
+                np.uint8)
             try:
                 self.parse()
             except StopIteration:
                 break
-
 
     def run(self):
         if self.file is not None:
