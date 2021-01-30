@@ -15,11 +15,18 @@ https://github.com/LCTyrell/Gaze_estimation
 
 """
 
+file = "../../videos/kenzo.mp4"
+file = "../../videos/colbert.m4v"
+
+if not Path(file).exists():
+    print(f"{Path(file).resolve().absolute()} not found")
+    exit(4)
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-nd', '--no_debug', default=False, action="store_true", help="Prevent debug output")
 parser.add_argument('-cam', '--camera', default=False, action="store_true",
                     help="Use DepthAI 4K RGB camera for inference (conflicts with -vid)")
-parser.add_argument('-vid', '--video', default="demo.mp4", type=str,
+parser.add_argument('-vid', '--video', default=file, type=str,
                     help="Path to video file to be used for inference (conflicts with -cam)")
 args = parser.parse_args()
 
@@ -65,11 +72,9 @@ def to_tensor_result(packet):
 
 def to_bbox_result(nn_data):
     arr = to_nn_result(nn_data)
-
     a = np.where(arr == -1)
     if a[0].size > 0:
-        arr = arr[:np.where(arr == -1)[0][0]]
-
+        arr = arr[:a[0][0]]
     arr = arr.reshape((arr.size // 7, 7))
     return arr
 
