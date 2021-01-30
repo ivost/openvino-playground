@@ -9,26 +9,30 @@ import numpy as np
 import depthai
 
 """
-
-original
-https://github.com/LCTyrell/Gaze_estimation
-
+the original: https://github.com/LCTyrell/Gaze_estimation
 """
 
-file = "../../videos/kenzo.mp4"
-file = "../../videos/colbert.m4v"
+models = "../../models"
+videos = "../../videos"
+video = "kenzo.mp4"
+video = "colbert.m4v"
 
-if not Path(file).exists():
-    print(f"{Path(file).resolve().absolute()} not found")
+if not Path(models).exists():
+    print(f"{models} not found")
     exit(4)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-nd', '--no_debug', default=False, action="store_true", help="Prevent debug output")
 parser.add_argument('-cam', '--camera', default=False, action="store_true",
                     help="Use DepthAI 4K RGB camera for inference (conflicts with -vid)")
-parser.add_argument('-vid', '--video', default=file, type=str,
+parser.add_argument('-vid', '--video', default=Path(videos, video).resolve().absolute(), type=str,
                     help="Path to video file to be used for inference (conflicts with -cam)")
 args = parser.parse_args()
+
+vp = Path(args.video).resolve().absolute()
+if not vp.exists():
+    print(f"{vp} not found")
+    exit(4)
 
 debug = not args.no_debug
 
@@ -129,78 +133,79 @@ class Main:
         print("Loading pipeline...")
         self.file = file
         self.camera = camera
-        self.create_pipeline()
+        self.pipeline = self.create_pipeline()
         self.start_pipeline()
 
     def create_pipeline(self):
         print("Creating pipeline...")
-        self.pipeline = depthai.Pipeline()
+        pipe = depthai.Pipeline()
 
         if self.camera:
             # ColorCamera
             print("Creating Color Camera...")
-            cam = self.pipeline.createColorCamera()
+            cam = pipe.createColorCamera()
             cam.setPreviewSize(300, 300)
             cam.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_1080_P)
             cam.setInterleaved(False)
             cam.setBoardSocket(depthai.CameraBoardSocket.RGB)
-            cam_xout = self.pipeline.createXLinkOut()
+            cam_xout = pipe.createXLinkOut()
             cam_xout.setStreamName("cam_out")
             cam.preview.link(cam_xout.input)
 
         # NeuralNetwork
         print("Creating Face Detection Neural Network...")
-        face_in = self.pipeline.createXLinkIn()
+        face_in = pipe.createXLinkIn()
         face_in.setStreamName("face_in")
-        face_nn = self.pipeline.createNeuralNetwork()
+        face_nn = pipe.createNeuralNetwork()
         face_nn.setBlobPath(
-            str(Path("../models/face-detection-retail-0004/face-detection-retail-0004.blob").resolve().absolute()))
-        face_nn_xout = self.pipeline.createXLinkOut()
+            str(Path(models, "face-detection-retail-0004/face-detection-retail-0004.blob").resolve().absolute()))
+        face_nn_xout = pipe.createXLinkOut()
         face_nn_xout.setStreamName("face_nn")
         face_in.out.link(face_nn.input)
         face_nn.out.link(face_nn_xout.input)
 
         # NeuralNetwork
         print("Creating Landmarks Detection Neural Network...")
-        land_nn = self.pipeline.createNeuralNetwork()
+        land_nn = pipe.createNeuralNetwork()
         land_nn.setBlobPath(
             str(Path(
-                "../models/landmarks-regression-retail-0009/landmarks-regression-retail-0009.blob").resolve().absolute())
+                models, "landmarks-regression-retail-0009/landmarks-regression-retail-0009.blob").resolve().absolute())
         )
-        land_nn_xin = self.pipeline.createXLinkIn()
+        land_nn_xin = pipe.createXLinkIn()
         land_nn_xin.setStreamName("landmark_in")
         land_nn_xin.out.link(land_nn.input)
-        land_nn_xout = self.pipeline.createXLinkOut()
+        land_nn_xout = pipe.createXLinkOut()
         land_nn_xout.setStreamName("landmark_nn")
         land_nn.out.link(land_nn_xout.input)
 
         # NeuralNetwork
         print("Creating Head Pose Neural Network...")
-        pose_nn = self.pipeline.createNeuralNetwork()
+        pose_nn = pipe.createNeuralNetwork()
         pose_nn.setBlobPath(
-            str(Path("../models/head-pose-estimation-adas-0001/head-pose-estimation-adas-0001.blob").resolve().absolute())
+            str(Path(models, "head-pose-estimation-adas-0001/head-pose-estimation-adas-0001.blob").resolve().absolute())
         )
-        pose_nn_xin = self.pipeline.createXLinkIn()
+        pose_nn_xin = pipe.createXLinkIn()
         pose_nn_xin.setStreamName("pose_in")
         pose_nn_xin.out.link(pose_nn.input)
-        pose_nn_xout = self.pipeline.createXLinkOut()
+        pose_nn_xout = pipe.createXLinkOut()
         pose_nn_xout.setStreamName("pose_nn")
         pose_nn.out.link(pose_nn_xout.input)
 
         # NeuralNetwork
         print("Creating Gaze Estimation Neural Network...")
-        gaze_nn = self.pipeline.createNeuralNetwork()
+        gaze_nn = pipe.createNeuralNetwork()
         gaze_nn.setBlobPath(
-            str(Path("../models/gaze-estimation-adas-0002/gaze-estimation-adas-0002.blob").resolve().absolute())
+            str(Path(models, "gaze-estimation-adas-0002/gaze-estimation-adas-0002.blob").resolve().absolute())
         )
-        gaze_nn_xin = self.pipeline.createXLinkIn()
+        gaze_nn_xin = pipe.createXLinkIn()
         gaze_nn_xin.setStreamName("gaze_in")
         gaze_nn_xin.out.link(gaze_nn.input)
-        gaze_nn_xout = self.pipeline.createXLinkOut()
+        gaze_nn_xout = pipe.createXLinkOut()
         gaze_nn_xout.setStreamName("gaze_nn")
         gaze_nn.out.link(gaze_nn_xout.input)
 
         print("Pipeline created.")
+        return pipe
 
     def start_pipeline(self):
         self.device = depthai.Device(self.pipeline)
