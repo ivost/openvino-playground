@@ -22,11 +22,21 @@ if not Path(models).exists():
     exit(4)
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-nd', '--no_debug', default=False, action="store_true", help="Prevent debug output")
-parser.add_argument('-cam', '--camera', default=False, action="store_true",
+
+fps=10
+use_cam = False
+#use_cam = True
+
+preview_w = 300 # 1920//10
+preview_h = 300 # 1080//10
+
+parser.add_argument('-cam', '--camera', default=use_cam, action="store_true",
                     help="Use DepthAI 4K RGB camera for inference (conflicts with -vid)")
+
 parser.add_argument('-vid', '--video', default=Path(videos, video).resolve().absolute(), type=str,
                     help="Path to video file to be used for inference (conflicts with -cam)")
+parser.add_argument('-nd', '--no_debug', default=False, action="store_true", help="Prevent debug output")
+
 args = parser.parse_args()
 
 vp = Path(args.video).resolve().absolute()
@@ -42,6 +52,11 @@ if args.camera and args.video:
 elif args.camera is False and args.video is None:
     raise ValueError(
         "Missing inference source! Either use \"-cam\" to run on DepthAI camera or \"-vid <path>\" to run on video file")
+
+if args.camera:
+    print(f"Using camera")
+else:
+    print(f"Using video {vp}")
 
 
 def wait_for_results(queue):
@@ -106,26 +121,28 @@ def frame_norm(frame, *xy_vals):
 
 
 def draw_3d_axis(image, head_pose, origin, size=50):
-    roll = head_pose[0] * np.pi / 180
-    pitch = head_pose[1] * np.pi / 180
-    yaw = -(head_pose[2] * np.pi / 180)
 
-    # X axis (red)
-    x1 = size * (cos(yaw) * cos(roll)) + origin[0]
-    y1 = size * (cos(pitch) * sin(roll) + cos(roll) * sin(pitch) * sin(yaw)) + origin[1]
-    cv2.line(image, (origin[0], origin[1]), (int(x1), int(y1)), (0, 0, 255), 3)
-
-    # Y axis (green)
-    x2 = size * (-cos(yaw) * sin(roll)) + origin[0]
-    y2 = size * (-cos(pitch) * cos(roll) - sin(pitch) * sin(yaw) * sin(roll)) + origin[1]
-    cv2.line(image, (origin[0], origin[1]), (int(x2), int(y2)), (0, 255, 0), 3)
-
-    # Z axis (blue)
-    x3 = size * (-sin(yaw)) + origin[0]
-    y3 = size * (cos(yaw) * sin(pitch)) + origin[1]
-    cv2.line(image, (origin[0], origin[1]), (int(x3), int(y3)), (255, 0, 0), 2)
-
-    return image
+    # roll = head_pose[0] * np.pi / 180
+    # pitch = head_pose[1] * np.pi / 180
+    # yaw = -(head_pose[2] * np.pi / 180)
+    #
+    # # X axis (red)
+    # x1 = size * (cos(yaw) * cos(roll)) + origin[0]
+    # y1 = size * (cos(pitch) * sin(roll) + cos(roll) * sin(pitch) * sin(yaw)) + origin[1]
+    # cv2.line(image, (origin[0], origin[1]), (int(x1), int(y1)), (0, 0, 255), 3)
+    #
+    # # Y axis (green)
+    # x2 = size * (-cos(yaw) * sin(roll)) + origin[0]
+    # y2 = size * (-cos(pitch) * cos(roll) - sin(pitch) * sin(yaw) * sin(roll)) + origin[1]
+    # cv2.line(image, (origin[0], origin[1]), (int(x2), int(y2)), (0, 255, 0), 3)
+    #
+    # # Z axis (blue)
+    # x3 = size * (-sin(yaw)) + origin[0]
+    # y3 = size * (cos(yaw) * sin(pitch)) + origin[1]
+    # cv2.line(image, (origin[0], origin[1]), (int(x3), int(y3)), (255, 0, 0), 2)
+    #
+    # return image
+    return
 
 
 class Main:
@@ -144,8 +161,20 @@ class Main:
             # ColorCamera
             print("Creating Color Camera...")
             cam = pipe.createColorCamera()
-            cam.setPreviewSize(300, 300)
+            cam.setPreviewSize(preview_w, preview_h)
             cam.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_1080_P)
+            cam.setFps(fps)
+            # cam.setFp16(True)
+
+            #cam.setVideoSize(960, 540)
+            #cam.setVideoSize(480, 270)
+
+            print(f"resolution: {cam.getResolution()}")
+            print(f"res.size: {cam.getResolutionSize()}")
+            print(f"video size: {cam.getVideoSize()}")
+            print(f"fp16: {cam.getFp16()}")
+            print(f"fps: {cam.getFps()}")
+
             cam.setInterleaved(False)
             cam.setBoardSocket(depthai.CameraBoardSocket.RGB)
             cam_xout = pipe.createXLinkOut()
@@ -243,7 +272,7 @@ class Main:
         cv2.rectangle(self.debug_frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
 
     def run_face(self):
-        nn_data = run_nn(self.face_in, self.face_nn, {"data": to_planar(self.frame, (300, 300))})
+        nn_data = run_nn(self.face_in, self.face_nn, {"data": to_planar(self.frame, (preview_w, preview_h))})
         # print(nn_data.getFirstLayerFp16())
         results = to_bbox_result(nn_data)
 
@@ -276,18 +305,18 @@ class Main:
         ])
         self.nose = self.full_frame_cords(raw_nose)
 
-        if debug:
-            cv2.circle(self.debug_frame, (self.nose[0], self.nose[1]), 2, (0, 255, 0), thickness=5, lineType=8, shift=0)
-            self.draw_bbox(self.right_eye_bbox, (245, 10, 10))
-            self.draw_bbox(self.left_eye_bbox, (245, 10, 10))
+        # if debug:
+        #     cv2.circle(self.debug_frame, (self.nose[0], self.nose[1]), 2, (0, 255, 0), thickness=5, lineType=8, shift=0)
+        #     self.draw_bbox(self.right_eye_bbox, (245, 10, 10))
+        #     self.draw_bbox(self.left_eye_bbox, (245, 10, 10))
 
     def run_pose(self):
         nn_data = run_nn(self.pose_in, self.pose_nn, {"data": to_planar(self.face_frame, (60, 60))})
 
         self.pose = [val[0] for val in to_tensor_result(nn_data).values()]
 
-        if debug:
-            draw_3d_axis(self.debug_frame, self.pose, self.nose)
+        # if debug:
+        #     draw_3d_axis(self.debug_frame, self.pose, self.nose)
 
     def run_gaze(self):
         nn_data = run_nn(self.gaze_in, self.gaze_nn, {
@@ -298,15 +327,15 @@ class Main:
 
         self.gaze = to_nn_result(nn_data)
 
-        if debug:
-            re_x = (self.right_eye_bbox[0] + self.right_eye_bbox[2]) // 2
-            re_y = (self.right_eye_bbox[1] + self.right_eye_bbox[3]) // 2
-            le_x = (self.left_eye_bbox[0] + self.left_eye_bbox[2]) // 2
-            le_y = (self.left_eye_bbox[1] + self.left_eye_bbox[3]) // 2
-
-            x, y = (self.gaze * 100).astype(int)[:2]
-            cv2.arrowedLine(self.debug_frame, (le_x, le_y), (le_x + x, le_y - y), (255, 0, 255), 3)
-            cv2.arrowedLine(self.debug_frame, (re_x, re_y), (re_x + x, re_y - y), (255, 0, 255), 3)
+        # if debug:
+        #     re_x = (self.right_eye_bbox[0] + self.right_eye_bbox[2]) // 2
+        #     re_y = (self.right_eye_bbox[1] + self.right_eye_bbox[3]) // 2
+        #     le_x = (self.left_eye_bbox[0] + self.left_eye_bbox[2]) // 2
+        #     le_y = (self.left_eye_bbox[1] + self.left_eye_bbox[3]) // 2
+        #
+        #     x, y = (self.gaze * 100).astype(int)[:2]
+        #     cv2.arrowedLine(self.debug_frame, (le_x, le_y), (le_x + x, le_y - y), (255, 0, 255), 3)
+        #     cv2.arrowedLine(self.debug_frame, (re_x, re_y), (re_x + x, re_y - y), (255, 0, 255), 3)
 
     def parse(self):
         if debug:
@@ -342,8 +371,10 @@ class Main:
 
     def run_camera(self):
         while True:
-            self.frame = np.array(self.cam_out.get().getData()).reshape((3, 300, 300)).transpose(1, 2, 0).astype(
+
+            self.frame = np.array(self.cam_out.get().getData()).reshape((3, preview_w, preview_h)).transpose(1, 2, 0).astype(
                 np.uint8)
+
             try:
                 self.parse()
             except StopIteration:
