@@ -60,7 +60,6 @@ else:
 
 start_fps = 0
 frames = 0
-usec = 1000000
 total_frames = 0
 first_start = 0
 

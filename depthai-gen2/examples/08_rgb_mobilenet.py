@@ -5,6 +5,8 @@ import sys
 import cv2
 import depthai as dai
 import numpy as np
+from datetime import datetime, timedelta
+
 
 # Get argument first
 mobilenet_path = str((Path(__file__).parent.parent.parent / Path('models/mobilenet.blob')).resolve().absolute())
@@ -13,6 +15,13 @@ if len(sys.argv) > 1:
 
 if not Path(mobilenet_path).exists():
     print("Path not found " + mobilenet_path)
+    exit(4)
+
+first_start = datetime.now()
+start_fps = datetime.now()
+frames = 0
+total_frames = 0
+fps = 5
 
 # Start defining a pipeline
 pipeline = dai.Pipeline()
@@ -21,6 +30,7 @@ pipeline = dai.Pipeline()
 cam_rgb = pipeline.createColorCamera()
 cam_rgb.setPreviewSize(300, 300)
 cam_rgb.setInterleaved(False)
+cam_rgb.setFps(fps)
 
 # Define a neural network that will make predictions based on the source frames
 detection_nn = pipeline.createNeuralNetwork()
@@ -29,11 +39,13 @@ cam_rgb.preview.link(detection_nn.input)
 
 # Create outputs
 xout_rgb = pipeline.createXLinkOut()
+xout_rgb.setFpsLimit(fps)
 xout_rgb.setStreamName("rgb")
 cam_rgb.preview.link(xout_rgb.input)
 
 xout_nn = pipeline.createXLinkOut()
 xout_nn.setStreamName("nn")
+xout_nn.setFpsLimit(fps)
 detection_nn.out.link(xout_nn.input)
 
 # Pipeline defined, now the device is assigned and pipeline is started
@@ -75,6 +87,17 @@ while True:
         bboxes = bboxes[bboxes[:, 2] > 0.5][:, 3:7]
 
     if frame is not None:
+
+        frames += 1
+        delta = (datetime.now() - start_fps).seconds
+        if delta >= 1:
+            print(f"FPS: {frames} {delta}")
+            total_delta = (datetime.now() - first_start).seconds
+            total_frames += frames
+            print(f"total FPS: {total_frames / total_delta} {total_frames} {total_delta}")
+            frames = 0
+            start_fps = datetime.now()
+
         # if the frame is available, draw bounding boxes on it and show the frame
         for raw_bbox in bboxes:
             bbox = frame_norm(frame, raw_bbox)

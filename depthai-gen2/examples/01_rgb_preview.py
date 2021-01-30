@@ -3,22 +3,28 @@
 import cv2
 import depthai as dai
 import numpy as np
+from datetime import datetime, timedelta
 
 # Start defining a pipeline
 pipeline = dai.Pipeline()
 
+first_start = datetime.now()
+start_fps = datetime.now()
+frames = 0
+total_frames = 0
+fps = 5
+
 # Define a source - color camera
 cam_rgb = pipeline.createColorCamera()
-
-# cam_rgb.setPreviewSize(300, 300)
-
-cam_rgb.setPreviewSize(960, 540)
+cam_rgb.setPreviewSize(300, 300)
+#cam_rgb.setPreviewSize(960, 540)
 
 cam_rgb.setBoardSocket(dai.CameraBoardSocket.RGB)
 
 cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
 
 cam_rgb.setInterleaved(False)
+cam_rgb.setFps(fps)
 
 # Create output
 xout_rgb = pipeline.createXLinkOut()
@@ -33,7 +39,19 @@ device.startPipeline()
 q_rgb = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
 
 while True:
+
     in_rgb = q_rgb.get()  # blocking call, will wait until a new data has arrived
+
+    frames += 1
+    delta = (datetime.now() - start_fps).seconds
+    if delta >= 1:
+        print(f"FPS: {frames} {delta}")
+        total_delta = (datetime.now() - first_start).seconds
+        total_frames += frames
+        print(f"total FPS: {total_frames/total_delta} {total_frames} {total_delta}")
+        frames = 0
+        start_fps = datetime.now()
+
     # data is originally represented as a flat 1D array, it needs to be converted into HxWxC form
     h, w = in_rgb.getHeight(), in_rgb.getWidth()
     shape = (3, h, w)
