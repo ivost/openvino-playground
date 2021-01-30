@@ -9,9 +9,15 @@ pipeline = dai.Pipeline()
 
 # Define a source - color camera
 cam_rgb = pipeline.createColorCamera()
-cam_rgb.setPreviewSize(300, 300)
+
+# cam_rgb.setPreviewSize(300, 300)
+
+cam_rgb.setPreviewSize(960, 540)
+
 cam_rgb.setBoardSocket(dai.CameraBoardSocket.RGB)
+
 cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
+
 cam_rgb.setInterleaved(False)
 
 # Create output
@@ -29,7 +35,9 @@ q_rgb = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
 while True:
     in_rgb = q_rgb.get()  # blocking call, will wait until a new data has arrived
     # data is originally represented as a flat 1D array, it needs to be converted into HxWxC form
-    shape = (3, in_rgb.getHeight(), in_rgb.getWidth())
+    h, w = in_rgb.getHeight(), in_rgb.getWidth()
+    shape = (3, h, w)
+    # print(f"h {h}, w {w}")
     frame_rgb = in_rgb.getData().reshape(shape).transpose(1, 2, 0).astype(np.uint8)
     frame_rgb = np.ascontiguousarray(frame_rgb)
     # frame is transformed and ready to be shown

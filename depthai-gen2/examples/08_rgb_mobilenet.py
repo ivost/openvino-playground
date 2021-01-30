@@ -7,9 +7,12 @@ import depthai as dai
 import numpy as np
 
 # Get argument first
-mobilenet_path = str((Path(__file__).parent / Path('models/mobilenet.blob')).resolve().absolute())
+mobilenet_path = str((Path(__file__).parent.parent.parent / Path('models/mobilenet.blob')).resolve().absolute())
 if len(sys.argv) > 1:
     mobilenet_path = sys.argv[1]
+
+if not Path(mobilenet_path).exists():
+    print("Path not found " + mobilenet_path)
 
 # Start defining a pipeline
 pipeline = dai.Pipeline()
