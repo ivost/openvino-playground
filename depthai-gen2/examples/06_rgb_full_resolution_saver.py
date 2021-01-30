@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+from datetime import datetime, timedelta
 import time
 from pathlib import Path
 
@@ -39,19 +39,33 @@ q_jpeg = device.getOutputQueue(name="jpeg", maxSize=30, blocking=True)
 # Make sure the destination path is present before starting to store the examples
 Path('06_data').mkdir(parents=True, exist_ok=True)
 
-while True:
-    in_rgb = q_rgb.tryGet()  # non-blocking call, will return a new data that has arrived or None otherwise
+# delta = (datetime.now() - start).microseconds / 1000
+# print(f"got data in {delta} ms, {datetime.now()}")
 
-    if in_rgb is not None:
-        # data is originally represented as a flat 1D array, it needs to be converted into HxW form
-        shape = (in_rgb.getHeight() * 3 // 2, in_rgb.getWidth())
-        frame_rgb = cv2.cvtColor(in_rgb.getData().reshape(shape), cv2.COLOR_YUV2BGR_NV12)
-        # frame is transformed and ready to be shown
-        cv2.imshow("rgb", frame_rgb)
+start = datetime.now()
+frames = 0
+while True:
+    if cv2.waitKey(1) == ord('q'):
+        break
+    in_rgb = q_rgb.tryGet()  # non-blocking call, will return a new data that has arrived or None otherwise
+    if in_rgb is None:
+        continue
+    frames += 1
+    # delta = (datetime.now() - start).microseconds
+    delta = (datetime.now() - start).seconds
+    print(f"{delta}")
+    if delta >= 1:
+        print(f"{frames} {delta}")
+        frames = 0
+        start = datetime.now()
+
+    # data is originally represented as a flat 1D array, it needs to be converted into HxW form
+    shape = (in_rgb.getHeight() * 3 // 2, in_rgb.getWidth())
+    frame_rgb = cv2.cvtColor(in_rgb.getData().reshape(shape), cv2.COLOR_YUV2BGR_NV12)
+    # frame is transformed and ready to be shown
+    cv2.imshow("rgb", frame_rgb)
 
     for enc_frame in q_jpeg.tryGetAll():
         with open(f"06_data/{int(time.time() * 10000)}.jpeg", "wb") as f:
             f.write(bytearray(enc_frame.getData()))
 
-    if cv2.waitKey(1) == ord('q'):
-        break

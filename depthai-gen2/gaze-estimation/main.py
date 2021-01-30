@@ -23,12 +23,12 @@ if not Path(models).exists():
 
 parser = argparse.ArgumentParser()
 
-fps=10
+fps = 10
 use_cam = False
-#use_cam = True
+use_cam = True
 
-preview_w = 300 # 1920//10
-preview_h = 300 # 1080//10
+preview_w = 300  # 1920//10
+preview_h = 300  # 1080//10
 
 parser.add_argument('-cam', '--camera', default=use_cam, action="store_true",
                     help="Use DepthAI 4K RGB camera for inference (conflicts with -vid)")
@@ -58,19 +58,37 @@ if args.camera:
 else:
     print(f"Using video {vp}")
 
+start_fps = 0
+frames = 0
+usec = 1000000
+total_frames = 0
+first_start = 0
 
 def wait_for_results(queue):
+    global start_fps, frames
+    global first_start, total_frames
 
     start = datetime.now()
+    if start_fps == 0:
+        first_start = start_fps = start
+        print(f"start_fps {start_fps}")
 
     while not queue.has():
         delta = datetime.now() - start
-        if delta.seconds > 1:
-            print(f"no data {datetime.now()} in {delta.seconds} sec")
+        if delta.seconds > 3:
+            print(f"no frames in {delta.seconds} sec?")
             return False
 
-    # delta = (datetime.now() - start).microseconds / 1000
-    # print(f"got data in {delta} ms, {datetime.now()}")
+    frames += 1
+    delta = (datetime.now() - start_fps).seconds
+    if delta >= 1:
+        print(f"FPS: {frames} {delta}")
+        total_delta = (datetime.now() - first_start).seconds
+        total_frames += frames
+        print(f"total FPS: {total_frames/total_delta} {total_frames} {total_delta}")
+        frames = 0
+        start_fps = datetime.now()
+
     return True
 
 
@@ -121,7 +139,6 @@ def frame_norm(frame, *xy_vals):
 
 
 def draw_3d_axis(image, head_pose, origin, size=50):
-
     # roll = head_pose[0] * np.pi / 180
     # pitch = head_pose[1] * np.pi / 180
     # yaw = -(head_pose[2] * np.pi / 180)
@@ -165,20 +182,19 @@ class Main:
             cam.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_1080_P)
             cam.setFps(fps)
             # cam.setFp16(True)
-
-            #cam.setVideoSize(960, 540)
-            #cam.setVideoSize(480, 270)
+            # cam.setVideoSize(960, 540)
+            # cam.setVideoSize(480, 270)
 
             print(f"resolution: {cam.getResolution()}")
             print(f"res.size: {cam.getResolutionSize()}")
             print(f"video size: {cam.getVideoSize()}")
-            print(f"fp16: {cam.getFp16()}")
             print(f"fps: {cam.getFps()}")
 
             cam.setInterleaved(False)
             cam.setBoardSocket(depthai.CameraBoardSocket.RGB)
             cam_xout = pipe.createXLinkOut()
             cam_xout.setStreamName("cam_out")
+            cam_xout.setFpsLimit(fps)
             cam.preview.link(cam_xout.input)
 
         # NeuralNetwork
@@ -372,7 +388,8 @@ class Main:
     def run_camera(self):
         while True:
 
-            self.frame = np.array(self.cam_out.get().getData()).reshape((3, preview_w, preview_h)).transpose(1, 2, 0).astype(
+            self.frame = np.array(self.cam_out.get().getData()).reshape((3, preview_w, preview_h)).transpose(1, 2,
+                                                                                                             0).astype(
                 np.uint8)
 
             try:
