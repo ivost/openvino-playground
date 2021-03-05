@@ -1,4 +1,5 @@
 import argparse
+import time
 from datetime import datetime, timedelta
 from math import cos, sin
 from pathlib import Path
@@ -15,7 +16,7 @@ the original: https://github.com/LCTyrell/Gaze_estimation
 models = "../../models"
 videos = "../../videos"
 video = "kenzo.mp4"
-video = "colbert.m4v"
+video = "colbert2.m4v"
 
 if not Path(models).exists():
     print(f"{models} not found")
@@ -23,9 +24,10 @@ if not Path(models).exists():
 
 parser = argparse.ArgumentParser()
 
+max_time = 20
 fps = 10
 use_cam = False
-use_cam = True
+# use_cam = True
 
 preview_w = 300  # 1920//10
 preview_h = 300  # 1080//10
@@ -45,6 +47,9 @@ if not vp.exists():
     exit(4)
 
 debug = not args.no_debug
+debug = True
+video_out = None
+limit = 20
 
 if args.camera and args.video:
     # raise ValueError("Incorrect command line parameters! \"-cam\" cannot be used with \"-vid\"!")
@@ -62,6 +67,7 @@ start_fps = 0
 frames = 0
 total_frames = 0
 first_start = 0
+
 
 def wait_for_results(queue):
     global start_fps, frames
@@ -82,12 +88,13 @@ def wait_for_results(queue):
     delta = (datetime.now() - start_fps).seconds
     if delta >= 1:
         print(f"FPS: {frames} {delta}")
+        # if frames > limit:
+        #     time.sleep(0.010)
         total_delta = (datetime.now() - first_start).seconds
         total_frames += frames
         print(f"total FPS: {total_frames/total_delta} {total_frames} {total_delta}")
         frames = 0
         start_fps = datetime.now()
-
     return True
 
 
@@ -138,27 +145,26 @@ def frame_norm(frame, *xy_vals):
 
 
 def draw_3d_axis(image, head_pose, origin, size=50):
-    # roll = head_pose[0] * np.pi / 180
-    # pitch = head_pose[1] * np.pi / 180
-    # yaw = -(head_pose[2] * np.pi / 180)
-    #
-    # # X axis (red)
-    # x1 = size * (cos(yaw) * cos(roll)) + origin[0]
-    # y1 = size * (cos(pitch) * sin(roll) + cos(roll) * sin(pitch) * sin(yaw)) + origin[1]
-    # cv2.line(image, (origin[0], origin[1]), (int(x1), int(y1)), (0, 0, 255), 3)
-    #
-    # # Y axis (green)
-    # x2 = size * (-cos(yaw) * sin(roll)) + origin[0]
-    # y2 = size * (-cos(pitch) * cos(roll) - sin(pitch) * sin(yaw) * sin(roll)) + origin[1]
-    # cv2.line(image, (origin[0], origin[1]), (int(x2), int(y2)), (0, 255, 0), 3)
-    #
-    # # Z axis (blue)
-    # x3 = size * (-sin(yaw)) + origin[0]
-    # y3 = size * (cos(yaw) * sin(pitch)) + origin[1]
-    # cv2.line(image, (origin[0], origin[1]), (int(x3), int(y3)), (255, 0, 0), 2)
-    #
-    # return image
-    return
+    roll = head_pose[0] * np.pi / 180
+    pitch = head_pose[1] * np.pi / 180
+    yaw = -(head_pose[2] * np.pi / 180)
+
+    # X axis (red)
+    x1 = size * (cos(yaw) * cos(roll)) + origin[0]
+    y1 = size * (cos(pitch) * sin(roll) + cos(roll) * sin(pitch) * sin(yaw)) + origin[1]
+    cv2.line(image, (origin[0], origin[1]), (int(x1), int(y1)), (0, 0, 255), 3)
+
+    # Y axis (green)
+    x2 = size * (-cos(yaw) * sin(roll)) + origin[0]
+    y2 = size * (-cos(pitch) * cos(roll) - sin(pitch) * sin(yaw) * sin(roll)) + origin[1]
+    cv2.line(image, (origin[0], origin[1]), (int(x2), int(y2)), (0, 255, 0), 3)
+
+    # Z axis (blue)
+    x3 = size * (-sin(yaw)) + origin[0]
+    y3 = size * (cos(yaw) * sin(pitch)) + origin[1]
+    cv2.line(image, (origin[0], origin[1]), (int(x3), int(y3)), (255, 0, 0), 2)
+
+    return image
 
 
 class Main:
@@ -296,8 +302,10 @@ class Main:
             for obj in results
             if obj[2] > 0.4
         ]
+
         if len(self.face_coords) == 0:
             return False
+
         self.face_frame = self.frame[
                           self.face_coords[0][1]:self.face_coords[0][3],
                           self.face_coords[0][0]:self.face_coords[0][2]
@@ -306,6 +314,7 @@ class Main:
             for bbox in self.face_coords:
                 self.draw_bbox(bbox, (10, 245, 10))
         return True
+
 
     def run_landmark(self):
         nn_data = run_nn(self.land_in, self.land_nn, {"0": to_planar(self.face_frame, (48, 48))})
@@ -320,18 +329,18 @@ class Main:
         ])
         self.nose = self.full_frame_cords(raw_nose)
 
-        # if debug:
-        #     cv2.circle(self.debug_frame, (self.nose[0], self.nose[1]), 2, (0, 255, 0), thickness=5, lineType=8, shift=0)
-        #     self.draw_bbox(self.right_eye_bbox, (245, 10, 10))
-        #     self.draw_bbox(self.left_eye_bbox, (245, 10, 10))
+        if debug:
+            cv2.circle(self.debug_frame, (self.nose[0], self.nose[1]), 2, (0, 255, 0), thickness=5, lineType=8, shift=0)
+            self.draw_bbox(self.right_eye_bbox, (245, 10, 10))
+            self.draw_bbox(self.left_eye_bbox, (245, 10, 10))
 
     def run_pose(self):
         nn_data = run_nn(self.pose_in, self.pose_nn, {"data": to_planar(self.face_frame, (60, 60))})
 
         self.pose = [val[0] for val in to_tensor_result(nn_data).values()]
 
-        # if debug:
-        #     draw_3d_axis(self.debug_frame, self.pose, self.nose)
+        if debug:
+            draw_3d_axis(self.debug_frame, self.pose, self.nose)
 
     def run_gaze(self):
         nn_data = run_nn(self.gaze_in, self.gaze_nn, {
@@ -342,17 +351,18 @@ class Main:
 
         self.gaze = to_nn_result(nn_data)
 
-        # if debug:
-        #     re_x = (self.right_eye_bbox[0] + self.right_eye_bbox[2]) // 2
-        #     re_y = (self.right_eye_bbox[1] + self.right_eye_bbox[3]) // 2
-        #     le_x = (self.left_eye_bbox[0] + self.left_eye_bbox[2]) // 2
-        #     le_y = (self.left_eye_bbox[1] + self.left_eye_bbox[3]) // 2
-        #
-        #     x, y = (self.gaze * 100).astype(int)[:2]
-        #     cv2.arrowedLine(self.debug_frame, (le_x, le_y), (le_x + x, le_y - y), (255, 0, 255), 3)
-        #     cv2.arrowedLine(self.debug_frame, (re_x, re_y), (re_x + x, re_y - y), (255, 0, 255), 3)
+        if debug:
+            re_x = (self.right_eye_bbox[0] + self.right_eye_bbox[2]) // 2
+            re_y = (self.right_eye_bbox[1] + self.right_eye_bbox[3]) // 2
+            le_x = (self.left_eye_bbox[0] + self.left_eye_bbox[2]) // 2
+            le_y = (self.left_eye_bbox[1] + self.left_eye_bbox[3]) // 2
+        
+            x, y = (self.gaze * 100).astype(int)[:2]
+            cv2.arrowedLine(self.debug_frame, (le_x, le_y), (le_x + x, le_y - y), (255, 0, 255), 3)
+            cv2.arrowedLine(self.debug_frame, (re_x, re_y), (re_x + x, re_y - y), (255, 0, 255), 3)
 
     def parse(self):
+        global video_out
         if debug:
             self.debug_frame = self.frame.copy()
 
@@ -365,28 +375,42 @@ class Main:
 
         if debug:
             aspect_ratio = self.frame.shape[1] / self.frame.shape[0]
-            cv2.imshow("Camera_view", cv2.resize(self.debug_frame, (int(900), int(900 / aspect_ratio))))
+
+            frame2 = cv2.resize(self.debug_frame, (int(900), int(900 / aspect_ratio)))
+
+            cv2.imshow("Camera_view", frame2)
+
+            if video_out:
+                # print(f"=== writing frame, aspect ratio {aspect_ratio} ")
+                video_out.write(frame2)
+
             if cv2.waitKey(1) == ord('q'):
                 cv2.destroyAllWindows()
                 raise StopIteration()
 
     def run_video(self):
+        global video_out
         cap = cv2.VideoCapture(str(Path(self.file).resolve().absolute()))
-        while cap.isOpened():
+
+        fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+        video_out = cv2.VideoWriter('debug.mp4', fourcc, 20.0, (900, 586))
+
+        start = datetime.now()
+        while cap.isOpened() and (datetime.now() - start).seconds < max_time:
             read_correctly, self.frame = cap.read()
             if not read_correctly:
                 break
-
             try:
                 self.parse()
             except StopIteration:
                 break
 
+        print("closing")
+        video_out.release()
         cap.release()
 
     def run_camera(self):
         while True:
-
             self.frame = np.array(self.cam_out.get().getData()).reshape((3, preview_w, preview_h)).transpose(1, 2,
                                                                                                              0).astype(
                 np.uint8)

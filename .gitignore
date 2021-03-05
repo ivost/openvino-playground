@@ -39,3 +39,4 @@ venv
 *.exe
 *.out
 *.app
+/depthai-gen2/gaze-estimation/debug.avi
