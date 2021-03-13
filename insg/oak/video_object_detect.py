@@ -9,22 +9,61 @@ import tkinter as tk
 from tkinter import filedialog
 
 import sys
+import importlib.util
+import pkgutil
+from pkgutil import extend_path
+import importlib.util
 
-#root_dir = Path(__file__).parent.parent.parent.resolve().absolute()
-# sys.path.append(root_dir / "insg")
-# sys.path.append(root_dir / "insg" / "common")
-# sys.path.append(root_dir / "insg" / "oak")
+import insg
+import insg.common
+import insg.oak
 
+# from .. common.videoengine import VideoEngine
+# import common.videoengine
+
+cwd = Path().resolve()
+print("cwd", cwd)
+
+# root_dir = cwd.parent.parent.parent.resolve().absolute()
+root_dir = "/Users/ivo/github/myriad-playground/insg"
+print("root_dir", root_dir)
+assert Path(root_dir).exists()
+
+
+# sys.path.append(root_dir)
+# sys.path.append(root_dir + "/common")
+# sys.path.append(root_dir + "/oak")
+
+# name = 'insg'
+#
+# if name in sys.modules:
+#     print(f"{name!r} already in sys.modules")
+# else:
+#     spec = importlib.util.spec_from_file_location(name, root_dir)
+#     eng = importlib.util.module_from_spec(spec)
+#     spec.loader.exec_module(eng)
+
+# elif (spec := importlib.util.find_spec(name)) is not None:
+#     # If you chose to perform the actual import ...
+#     module = importlib.util.module_from_spec(spec)
+#     sys.modules[name] = module
+#     spec.loader.exec_module(module)
+#     print(f"{name!r} has been imported")
+# else:
+#     print(f"can't find the {name!r} module")
+
+# __path__ = extend_path('/Users/ivo/github/myriad-playground/insg', 'insg')
+# print("__path__", __path__)
+
+# sys.path.append(root_dir)
+# sys.path.append(root_dir + "/common")
+# sys.path.append(root_dir + "/oak")
+# print("sys.path", sys.path)
 # wkd = Path(__file__)
 # mobilenet_path = str((wkd / Path('../../models/ssdlite_mobilenet_v2/mobilenet.blob')).resolve().absolute())
 
 from insg.common.videoengine import VideoEngine
-# import insg.common.videoengine
 
-# import importlib.util
-# spec = importlib.util.spec_from_file_location("oak", "")
-# eng = importlib.util.module_from_spec(spec)
-# spec.loader.exec_module(eng)
 
 class Detect(VideoEngine):
 
@@ -135,6 +174,7 @@ class Detect(VideoEngine):
                 if cv2.waitKey(1) == ord('q'):
                     break
 
+print(__name__)
 
 if __name__ == '__main__':
     # print(__file__)
@@ -148,3 +188,9 @@ if __name__ == '__main__':
     assert path.exists()
     # c = Detect()
     # c.main()
+
+'''
+'/Users/ivo/opt/anaconda3/lib/python38.zip', '/Users/ivo/opt/anaconda3/lib/python3.8', 
+'/Users/ivo/opt/anaconda3/lib/python3.8/lib-dynload', '/Users/ivo/opt/anaconda3/lib/python3.8/site-packages', 
+'/Users/ivo/opt/anaconda3/lib/python3.8/site-packages/aeosa']
+'''
