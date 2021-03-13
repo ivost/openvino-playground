@@ -1,16 +1,22 @@
-from argparse import ArgumentParser
-# from configparser import ConfigParser, ExtendedInterpolation
-
 import configparser
 import collections
 import sys
+import os
 from pathlib import Path
 import logging as log
+
+
+class ExtendedEnvInterpolation(configparser.ExtendedInterpolation):
+    """Interpolation which expands environment variables in values."""
+
+    def before_get(self, parser, section, option, value, defaults):
+        return os.path.expandvars(value)
 
 
 class Config:
     def __init__(self, log_level=log.INFO):
         log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log_level, stream=sys.stdout)
+        #self.cp = configparser.ConfigParser(interpolation=ExtendedEnvInterpolation())
         self.cp = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
 
     @staticmethod
@@ -34,14 +40,16 @@ class Config:
 
 
 if __name__ == '__main__':
+    # self-test
     c = Config()
     c.read("config.ini")
-    inp: Path = Config.existing_path(c.network.model)
+
+    inp: Path = Config.existing_path(c.network.blob)
     assert inp.exists()
 
-    # print(f"config.cp['network']['weights']: {c.cp['network']['weights']}")
-    # print(f"network.model: {c.network.model}")
-    # print(f"network: {c.network}")
+    log.debug(f"config.cp['network']['weights']: {c.cp['network']['weights']}")
+    log.debug(f"network.model: {c.network.model}")
+    log.debug(f"network: {c.network}")
 
     top = int(c.network.top)
-    assert top == 3
+    assert top == 1
