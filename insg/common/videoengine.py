@@ -24,10 +24,9 @@ class VideoEngine:
         size = (width, height)
         # fourcc = cv2.VideoWriter_fourcc(*'MP4V')
         # self.video_out = cv2.VideoWriter('debug.mp4', fourcc, 20.0, size)
-
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.video_out = cv2.VideoWriter('debug.avi', fourcc, 20.0, size)
-
+        self.temp_video = '/tmp/temp.avi'
+        self.video_out = cv2.VideoWriter( self.temp_video, fourcc, 20.0, size)
         n = self.c.network
         self.blob = Config.existing_path(n.blob)
         self.labels = Config.existing_path(n.labels)
@@ -88,8 +87,8 @@ class VideoEngine:
                     continue
                 frame = self.process_results(in_nn, frame)
 
-                if self.c.output.preview:
-                    cv2.imshow("rgb", frame)
+                # if self.c.output.preview:
+                #     cv2.imshow("rgb", frame)
 
                 # aspect_ratio = self.frame.shape[1] / self.frame.shape[0]
                 # frame2 = cv2.resize(self.debug_frame, (int(900), int(900 / aspect_ratio)))
@@ -99,6 +98,8 @@ class VideoEngine:
 
             if self.video_out:
                 self.video_out.release()
+
+            self.convert_to_mp4(self.temp_video, self.c.output.file)
 
     def model_check(self):
         pass
@@ -127,6 +128,15 @@ class VideoEngine:
                         font, font_size, color_bgr)
         return frame
 
+    def convert_to_mp4(self, input, output):
+        import subprocess
+        log.debug(f"converting {input} to {output}")
+        # ffmpeg -i debug.avi -y a.mp4
+        result = subprocess.run(["ffmpeg", "-i", input, "-y", output])
+        subprocess.run(["rm", input])
+
+        return result
+
 
 def _convert_frame(frame, img, shape) -> np.ndarray:
     tstamp = time.monotonic()
@@ -148,5 +158,10 @@ def _frame_norm(frame, bbox):
 if __name__ == '__main__':
     # self-test
     engine = VideoEngine("init", "engine", "config.ini")
+
+    print(engine.c.output.file)
+
     pipeline = engine.define_pipeline()
     engine.run_pipeline(pipeline)
+
+    engine.convert_to_mp4("/tmp/temp.avi", "/tmp/out.mp4")
