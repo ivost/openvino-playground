@@ -16,8 +16,6 @@ class Detect(VideoEngine):
     def __init__(self):
         super().__init__("Video object detection test", "v.2021.3.13")
         self.configure()
-        self.pipeline = self.define_pipeline()
-        self.run_pipeline(self.pipeline)
 
     def configure(self):
         if len(sys.argv) == 1:
@@ -30,6 +28,10 @@ class Detect(VideoEngine):
                 self.input = sys.argv[1]
             if len(sys.argv) > 2:
                 self.blob = sys.argv[2]
+
+    def main(self):
+        self.pipeline = self.define_pipeline()
+        self.run_pipeline(self.pipeline)
 
 
 if __name__ == '__main__':
