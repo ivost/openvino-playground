@@ -7,7 +7,7 @@ import numpy as np
 # from depthai import Config
 
 
-class Engine:
+class VideoEngine:
 
     def __init__(self, message, version, config_ini, log_level=log.INFO):
         log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log_level, stream=sys.stdout)
@@ -221,4 +221,4 @@ class Engine:
 
 
 if __name__ == '__main__':
-    engine = Engine("init", "engine", None)
+    engine = VideoEngine("init", "engine", None)

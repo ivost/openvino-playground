@@ -8,33 +8,33 @@ from time import monotonic
 import tkinter as tk
 from tkinter import filedialog
 
-# FIXME
-# import sys
-# sys.path.append("/Users/ivo/github/myriad-playground/oak")
+import sys
 
-from engine import Engine
+#root_dir = Path(__file__).parent.parent.parent.resolve().absolute()
+# sys.path.append(root_dir / "insg")
+# sys.path.append(root_dir / "insg" / "common")
+# sys.path.append(root_dir / "insg" / "oak")
 
+# wkd = Path(__file__)
+# mobilenet_path = str((wkd / Path('../../models/ssdlite_mobilenet_v2/mobilenet.blob')).resolve().absolute())
+
+from insg.common.videoengine import VideoEngine
+# import insg.common.videoengine
 
 # import importlib.util
 # spec = importlib.util.spec_from_file_location("oak", "")
 # eng = importlib.util.module_from_spec(spec)
 # spec.loader.exec_module(eng)
 
-class Detect(Engine):
+class Detect(VideoEngine):
 
     def __init__(self, log_level=log.DEBUG):
         super().__init__("Object detection benchmark", "v.2021.1.25", "detect.ini", log_level=log_level)
 
     def main(self):
-        # stats = Stats()
-        # return
-
-        # Get argument first
-        wkd = Path(__file__)
-        mobilenet_path = str((wkd / Path('../../models/ssdlite_mobilenet_v2/mobilenet.blob')).resolve().absolute())
-
-        # video_path = str((wkd / Path("../../videos/airport-01-UHD.mp4")).resolve().absolute())
-        video_path = str((wkd / Path("../../videos/airport-01-HD.mp4")).resolve().absolute())
+        root_dir = Path(__file__).parent.parent.parent.resolve().absolute()
+        mobilenet_path = str((root_dir.joinpath('models/ssdlite_mobilenet_v2/mobilenet.blob')))
+        video_path = str((root_dir.joinpath("videos/airport-01-HD.mp4")))
 
         if len(sys.argv) == 1:
             pass
@@ -137,5 +137,14 @@ class Detect(Engine):
 
 
 if __name__ == '__main__':
-    c = Detect()
-    c.main()
+    # print(__file__)
+    root_dir = Path(__file__).parent.parent.parent.resolve().absolute()
+    # sys.path.append(root_dir / "insg")
+    # sys.path.append(root_dir / "insg" / "common")
+    # sys.path.append(root_dir / "insg" / "oak")
+    print(sys.path)
+    # print(root_dir)
+    path = root_dir / "models" / "ssdlite_mobilenet_v2" / "mobilenet.blob"
+    assert path.exists()
+    # c = Detect()
+    # c.main()
