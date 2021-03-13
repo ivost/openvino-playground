@@ -1,12 +1,5 @@
 import logging as log
-import os
-import sys
-
-import numpy as np
-
 from ncs2.engine import Engine
-from ncs2.config import Config
-from ncs2.imageproc import ImageProc
 from ncs2.stats import Stats
 
 version = "v.2021.1.24"
