@@ -2,10 +2,12 @@ import logging as log
 import sys
 import tempfile
 import time
+from pathlib import Path
 
 import cv2
 import depthai as dai
 import numpy as np
+import os.path
 
 from insg.common import Config
 
@@ -28,16 +30,20 @@ class VideoEngine:
         # self.video_out = cv2.VideoWriter('debug.mp4', fourcc, 20.0, size)
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
-        temp = tempfile.TemporaryFile()
-        self.temp_video = temp.name+'.avi'
-        self.video_out = cv2.VideoWriter(self.temp_video, fourcc, 20.0, size)
         n = self.c.network
         self.blob = Config.existing_path(n.blob)
         self.labels = Config.existing_path(n.labels)
         self.input = Config.existing_path(self.c.input.video)
-        with open(self.labels, 'r') as file:
-            self.labels = [line.split(sep=' ', maxsplit=1)[-1].strip() for line in file]
-        log.debug(f"{len(self.labels)} labels")
+        assert os.path.exists(self.input)
+        self.labels = self.create_labels()
+        tf = tempfile.NamedTemporaryFile(suffix=".avi")
+        print(tf.name)
+        self.temp_video = tf.name
+        self.output_file = self._output_filename()
+        tf.close()
+        log.debug(f"Creating VideoWriter: {self.temp_video}, {size}")
+        self.video_out = cv2.VideoWriter(self.temp_video, fourcc, 20.0, size)
+        return
 
     def define_pipeline(self):
         # initialize engine
@@ -60,6 +66,7 @@ class VideoEngine:
         return
 
     def run_pipeline(self):
+        log.debug("Pipeline run")
         with dai.Device(self.pipeline) as device:
             # Start pipeline
             device.startPipeline()
@@ -71,6 +78,8 @@ class VideoEngine:
 
             inp = str(self.input)
             log.debug(f"reading from {inp}")
+            preview = "true" in str(self.c.output.preview).lower()
+            log.debug(f"preview: {preview}")
             cap = cv2.VideoCapture(inp)
             while cap.isOpened():
                 if cv2.waitKey(1) == ord('q'):
@@ -88,19 +97,39 @@ class VideoEngine:
                     time.sleep(0.005)
                     continue
                 frame = self.process_results(in_nn, frame)
-                cv2.imshow("rgb", frame)
-                # if self.c.output.preview:
-                #     cv2.imshow("rgb", frame)
+                if preview:
+                    cv2.imshow("rgb", frame)
 
                 # aspect_ratio = self.frame.shape[1] / self.frame.shape[0]
                 # frame2 = cv2.resize(self.debug_frame, (int(900), int(900 / aspect_ratio)))
                 if self.video_out:
-                    # print(f"=== writing frame, aspect ratio {aspect_ratio} ")
                     self.video_out.write(frame)
 
             if self.video_out:
                 self.video_out.release()
-            self.convert_to_mp4(self.temp_video, self.c.output.file)
+            assert len(self.output_file) > 0
+
+            log.info(f"Convert to {self.c.output.type}")
+            self._convert_to_mp4()
+            assert os.path.exists(self.output_file)
+            log.info(f"Output file is ready: {self.output_file}")
+
+        log.debug("Pipeline end")
+
+    def _output_filename(self):
+        name = Path(self.input).resolve().name
+        assert len(name) > 0
+        if '.' in name:
+            el = name.split('.')
+            name = el[-2]
+        dir = self.c.output.dir
+        assert(os.path.isdir(dir))
+        assert(os.path.exists(dir))
+        fname = f"{name}-{self.c.var.name}-{self.c.output.width}x{self.c.output.height}.{self.c.output.type}"
+        print(fname)
+        self.output_file = os.path.join(dir, fname)
+        print(f"generate_output_file {self.input} -> {self.output_file}")
+        return self.output_file
 
     def model_check(self):
         pass
@@ -129,13 +158,25 @@ class VideoEngine:
                         font, font_size, color_bgr)
         return frame
 
-    def convert_to_mp4(self, input, output):
+    def _convert_to_mp4(self):
         import subprocess
-        log.info(f"converting {input} to {output}")
+        inp = self.temp_video
+        assert os.path.exists(inp)
+        outp = self.output_file
+        log.info(f"converting {inp} to {outp}")
         # ffmpeg -i debug.avi -y a.mp4
-        result = subprocess.run(["ffmpeg", "-i", input, "-y", output])
-        subprocess.run(["rm", input])
-        return result
+        res = subprocess.run(["ffmpeg", "-analyzeduration", "1000000", "-i", inp, "-y", outp])
+        log.info(str(res))
+        if ("returncode=0" not in str(res)) and os.path.exists(outp):
+            log.debug(f"Deleting {inp}")
+            os.remove(inp)
+        return
+
+    def create_labels(self):
+        with open(self.labels, 'r') as file:
+            self.labels = [line.split(sep=' ', maxsplit=1)[-1].strip() for line in file]
+            # log.debug(f"{len(self.labels)} labels")
+        return self.labels
 
 
 def _convert_frame(frame, img, shape) -> np.ndarray:
@@ -160,4 +201,3 @@ if __name__ == '__main__':
     engine = VideoEngine("init", "engine", "config.ini")
     engine.define_pipeline()
     engine.run_pipeline()
-    engine.convert_to_mp4(engine.temp_video, "/tmp/out.mp4")

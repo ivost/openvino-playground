@@ -53,3 +53,6 @@ if __name__ == '__main__':
 
     top = int(c.network.top)
     assert top == 1
+
+    assert os.path.isdir(c.output.dir)
+    assert c.output.type == "mp4"

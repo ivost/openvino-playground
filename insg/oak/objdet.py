@@ -30,12 +30,10 @@ class Detect(VideoEngine):
                 self.blob = sys.argv[2]
 
     def main(self):
-        self.pipeline = self.define_pipeline()
-        self.run_pipeline(self.pipeline)
+        self.define_pipeline()
+        self.run_pipeline()
 
 
 if __name__ == '__main__':
     c = Detect()
     c.main()
-'''
-'''
