@@ -1,7 +1,5 @@
-import sys
 import time
 
-import common
 from common import Stats
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 import logging as log
 import sys
+import tempfile
 import time
 
 import cv2
@@ -22,43 +23,44 @@ class VideoEngine:
         width = 1920
         height = 1080
         size = (width, height)
+
         # fourcc = cv2.VideoWriter_fourcc(*'MP4V')
         # self.video_out = cv2.VideoWriter('debug.mp4', fourcc, 20.0, size)
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.temp_video = '/tmp/temp.avi'
-        self.video_out = cv2.VideoWriter( self.temp_video, fourcc, 20.0, size)
+
+        temp = tempfile.TemporaryFile()
+        self.temp_video = temp.name+'.avi'
+        self.video_out = cv2.VideoWriter(self.temp_video, fourcc, 20.0, size)
         n = self.c.network
         self.blob = Config.existing_path(n.blob)
         self.labels = Config.existing_path(n.labels)
         self.input = Config.existing_path(self.c.input.video)
         with open(self.labels, 'r') as file:
             self.labels = [line.split(sep=' ', maxsplit=1)[-1].strip() for line in file]
-            log.debug(f"{len(self.labels)} labels")
+        log.debug(f"{len(self.labels)} labels")
 
     def define_pipeline(self):
         # initialize engine
         log.info(f"Initializing depthai pipeline")
         # Start defining a pipeline
-        pline = dai.Pipeline()
-
+        self.pipeline = dai.Pipeline()
         # Create neural network input
-        xin_nn = pline.createXLinkIn()
+        xin_nn = self.pipeline.createXLinkIn()
         xin_nn.setStreamName("in_nn")
 
         # Define a neural network that will make predictions based on the source frames
-        detection_nn = pline.createNeuralNetwork()
+        detection_nn = self.pipeline.createNeuralNetwork()
         detection_nn.setBlobPath(str(self.blob))
         xin_nn.out.link(detection_nn.input)
 
         # Create output
-        xout_nn = pline.createXLinkOut()
+        xout_nn = self.pipeline.createXLinkOut()
         xout_nn.setStreamName("nn")
         detection_nn.out.link(xout_nn.input)
-        self.pipeline = pline
-        return pline
+        return
 
-    def run_pipeline(self, pipeline):
-        with dai.Device(pipeline) as device:
+    def run_pipeline(self):
+        with dai.Device(self.pipeline) as device:
             # Start pipeline
             device.startPipeline()
 
@@ -86,7 +88,7 @@ class VideoEngine:
                     time.sleep(0.005)
                     continue
                 frame = self.process_results(in_nn, frame)
-
+                cv2.imshow("rgb", frame)
                 # if self.c.output.preview:
                 #     cv2.imshow("rgb", frame)
 
@@ -98,7 +100,6 @@ class VideoEngine:
 
             if self.video_out:
                 self.video_out.release()
-
             self.convert_to_mp4(self.temp_video, self.c.output.file)
 
     def model_check(self):
@@ -130,11 +131,10 @@ class VideoEngine:
 
     def convert_to_mp4(self, input, output):
         import subprocess
-        log.debug(f"converting {input} to {output}")
+        log.info(f"converting {input} to {output}")
         # ffmpeg -i debug.avi -y a.mp4
         result = subprocess.run(["ffmpeg", "-i", input, "-y", output])
         subprocess.run(["rm", input])
-
         return result
 
 
@@ -158,10 +158,6 @@ def _frame_norm(frame, bbox):
 if __name__ == '__main__':
     # self-test
     engine = VideoEngine("init", "engine", "config.ini")
-
-    print(engine.c.output.file)
-
-    pipeline = engine.define_pipeline()
-    engine.run_pipeline(pipeline)
-
-    engine.convert_to_mp4("/tmp/temp.avi", "/tmp/out.mp4")
+    engine.define_pipeline()
+    engine.run_pipeline()
+    engine.convert_to_mp4(engine.temp_video, "/tmp/out.mp4")

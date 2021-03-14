@@ -1,0 +1,6 @@
+opencv-python~=4.5.1.48
+numpy~=1.19.5
+depthai~=2.0.0.1+2a6b579968ed0ea81049a3aa8b80cf961dd45b6a
+future~=0.18.2
+pillow~=8.0.1
+tqdm~=4.50.2
