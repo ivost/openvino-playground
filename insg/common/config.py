@@ -14,7 +14,7 @@ class ExtendedEnvInterpolation(configparser.ExtendedInterpolation):
 
 
 class Config:
-    def __init__(self, log_level=log.INFO):
+    def __init__(self, log_level=log.DEBUG):
         log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log_level, stream=sys.stdout)
         #self.cp = configparser.ConfigParser(interpolation=ExtendedEnvInterpolation())
         self.cp = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
