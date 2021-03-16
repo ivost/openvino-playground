@@ -6,8 +6,8 @@ import ngraph as ng
 import numpy as np
 from openvino.inference_engine import IECore
 
-from insg.ncs2.config import Config
-from insg.ncs2.imageproc import ImageProc
+from insg.common.config import Config
+from insg.common.imageproc import ImageProc
 
 
 class Engine:

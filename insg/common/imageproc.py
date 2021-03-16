@@ -1,9 +1,14 @@
 import logging as log
 import os
 import shutil
+import time
 from os import listdir
 from os.path import join
 from pathlib import Path
+
+import cv2
+import numpy as np
+from PIL import Image
 
 from insg.common import Config
 
@@ -93,40 +98,38 @@ class ImageProc:
         return count
 
     def preprocess_images(self, size):
-        pass
-        # result = []
-        # start = time.perf_counter()
-        # for file in self.files:
-        #     # flat 1-level read
-        #     if Path(file).is_dir():
-        #         continue
-        #     log.debug(f"file {file}")
-        #     result.append(Image.open(file).convert('RGB').resize(size, Image.ANTIALIAS))
-        #
-        # duration = (time.perf_counter() - start) / 1000
-        # if duration > 2:
-        #     log.debug(f"preprocessing took {duration} ms")
-        # return result
+        result = []
+        start = time.perf_counter()
+        for file in self.files:
+            # flat 1-level read
+            if Path(file).is_dir():
+                continue
+            log.debug(f"file {file}")
+            result.append(Image.open(file).convert('RGB').resize(size, Image.ANTIALIAS))
+
+        duration = (time.perf_counter() - start) / 1000
+        if duration > 2:
+            log.debug(f"preprocessing took {duration} ms")
+        return result
 
     def preprocess_batch(self, idx, batch_size, channels, height, width):
-        pass
-        # # log.debug(f"preprocess_batch idx {idx}, batch_size {batch_size}")
-        # np_images = np.ndarray(shape=(batch_size, channels, height, width))
-        # images_hw = []
-        #
-        # for i in range(idx, idx+batch_size):
-        #     if i >= len(self.files):
-        #         break
-        #     file = self.files[i]
-        #     log.debug(f"file {file}")
-        #     image = cv2.imread(file)
-        #     ih, iw = image.shape[:-1]
-        #     images_hw.append((ih, iw))
-        #     if image.shape[:-1] != (height, width):
-        #         image = cv2.resize(image, (width, height))
-        #     # Change data layout from HWC to CHW
-        #     np_images[i-idx] = image.transpose((2, 0, 1))
-        # return np_images, images_hw
+        # log.debug(f"preprocess_batch idx {idx}, batch_size {batch_size}")
+        np_images = np.ndarray(shape=(batch_size, channels, height, width))
+        images_hw = []
+
+        for i in range(idx, idx + batch_size):
+            if i >= len(self.files):
+                break
+            file = self.files[i]
+            log.debug(f"file {file}")
+            image = cv2.imread(file)
+            ih, iw = image.shape[:-1]
+            images_hw.append((ih, iw))
+            if image.shape[:-1] != (height, width):
+                image = cv2.resize(image, (width, height))
+            # Change data layout from HWC to CHW
+            np_images[i - idx] = image.transpose((2, 0, 1))
+        return np_images, images_hw
 
     def copy_to_dir(self, src_file_path, dest_dir_path):
         if not dest_dir_path.exists():
@@ -140,9 +143,9 @@ class ImageProc:
 
 if __name__ == '__main__':
     c = Config()
-    c.read("classify.ini")
-    # img_proc = ImageProc(c)
-    # img_proc.prepare()
-    # images = img_proc.preprocess_images((128, 128))
-    # assert len(images) > 0
-    # assert len(img_proc.files) >= len(images)
+    c.read("config.ini")
+    img_proc = ImageProc(c)
+    img_proc.prepare()
+    images = img_proc.preprocess_images((128, 128))
+    assert len(images) > 0
+    assert len(img_proc.files) >= len(images)
