@@ -122,6 +122,7 @@ class Engine:
                 print("\nImage {}/{} - {}".format(idx + 1, len(files), files[idx]))
             count = 0
             for id in top_ind:
+                print("id", id, "probs[id]", probs[id])
                 if probs[id] < min_prob:
                     break
                 label = str(id)

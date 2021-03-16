@@ -1,7 +1,9 @@
 import logging as log
 
-from ncs2.engine import Engine
-from ncs2.stats import Stats
+from insg.common import Stats
+from insg.ncs2.engine import Engine
+
+version = "v.2021.3.16"
 
 
 class Detect(Engine):
