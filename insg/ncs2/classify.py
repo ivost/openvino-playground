@@ -1,14 +1,15 @@
 import logging as log
-from ncs2.engine import Engine
-from ncs2.stats import Stats
 
-version = "v.2021.1.24"
+from insg.common import Stats
+from insg.ncs2.engine import Engine
+
+version = "v.2021.3.16"
 
 
 class Classify(Engine):
     # todo cmd line arg to choose ini file
     def __init__(self, log_level=log.INFO):
-        super().__init__("Classification benchmark", "v.2021.1.25", "classify.ini")
+        super().__init__("Classification benchmark", version, "classify.ini")
 
     def main(self):
         stats = Stats()

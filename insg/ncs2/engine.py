@@ -6,13 +6,13 @@ import ngraph as ng
 import numpy as np
 from openvino.inference_engine import IECore
 
-from ncs2.config import Config
-from ncs2.imageproc import ImageProc
+from insg.ncs2.config import Config
+from insg.ncs2.imageproc import ImageProc
 
 
 class Engine:
 
-    def __init__(self, message, version, config_ini, log_level=log.INFO):
+    def __init__(self, message, version, config_ini='config.ini', log_level=log.INFO):
         log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log_level, stream=sys.stdout)
         log.info(f"\n{message} {version}\n")
 
@@ -219,4 +219,4 @@ class Engine:
 
 
 if __name__ == '__main__':
-    engine = Engine("init", "engine")
+    engine = Engine("init", "engine", "2021.3.16")

@@ -8,9 +8,6 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from PIL import Image
-
-from ncs2.config import Config
 
 
 class ImageProc:
@@ -117,7 +114,7 @@ class ImageProc:
         np_images = np.ndarray(shape=(batch_size, channels, height, width))
         images_hw = []
 
-        for i in range(idx, idx+batch_size):
+        for i in range(idx, idx + batch_size):
             if i >= len(self.files):
                 break
             file = self.files[i]
@@ -128,7 +125,7 @@ class ImageProc:
             if image.shape[:-1] != (height, width):
                 image = cv2.resize(image, (width, height))
             # Change data layout from HWC to CHW
-            np_images[i-idx] = image.transpose((2, 0, 1))
+            np_images[i - idx] = image.transpose((2, 0, 1))
         return np_images, images_hw
 
     def copy_to_dir(self, src_file_path, dest_dir_path):
@@ -149,4 +146,3 @@ if __name__ == '__main__':
     images = img_proc.preprocess_images((128, 128))
     assert len(images) > 0
     assert len(img_proc.files) >= len(images)
-

@@ -1,16 +1,11 @@
 import logging as log
 import os
 import shutil
-import time
 from os import listdir
 from os.path import join
 from pathlib import Path
 
-import cv2
-import numpy as np
-# from PIL import Image
-
-# from . config import Config
+from insg.common import Config
 
 
 class ImageProc:

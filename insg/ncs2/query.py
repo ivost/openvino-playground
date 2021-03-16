@@ -1,6 +1,6 @@
 import sys
 
-from openvino.inference_engine import IECore
+#from openvino.inference_engine import IECore
 
 
 def param_to_string(metric):

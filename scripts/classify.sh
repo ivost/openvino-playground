@@ -4,6 +4,8 @@ SCRIPT=`realpath $0`
 DIR=`dirname $SCRIPT`
 D=$DIR/..
 
+echo $D
+
 #pip install -r requirements.txt
 
 export PYTHONPATH=$D:$PYTHONPATH
@@ -25,7 +27,7 @@ fi
 # python3 $D/py/classify/classify.py -h
 
 
-python3 $D/python/classify/main.py \
+python3 $D/insg/ncs2/classify.py \
   -n 100 \
   --device MYRIAD
 #  --quiet \

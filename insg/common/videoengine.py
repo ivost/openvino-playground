@@ -167,7 +167,7 @@ class VideoEngine:
         # ffmpeg -i debug.avi -y a.mp4
         res = subprocess.run(["ffmpeg", "-analyzeduration", "1000000", "-i", inp, "-y", outp])
         log.info(str(res))
-        if ("returncode=0" not in str(res)) and os.path.exists(outp):
+        if ("returncode=0" in str(res)) and os.path.exists(outp):
             log.debug(f"Deleting {inp}")
             os.remove(inp)
         return

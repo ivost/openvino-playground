@@ -1,12 +1,6 @@
-import logging as log
-from pathlib import Path
 import sys
-import cv2
-import depthai as dai
-import numpy as np
-from time import monotonic
-import tkinter as tk
-from tkinter import filedialog
+# import tkinter as tk
+# from tkinter import filedialog
 
 from insg.common.videoengine import VideoEngine
 
@@ -14,7 +8,7 @@ from insg.common.videoengine import VideoEngine
 class Detect(VideoEngine):
 
     def __init__(self):
-        super().__init__("Video object detection test", "v.2021.3.13")
+        super().__init__("Video object detection test", "v.2021.3.14")
         self.configure()
 
     def configure(self):

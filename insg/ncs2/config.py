@@ -1,11 +1,11 @@
-from argparse import ArgumentParser
 # from configparser import ConfigParser, ExtendedInterpolation
 
-import configparser
 import collections
+import configparser
+import logging as log
 import sys
 from pathlib import Path
-import logging as log
+
 
 class Config:
     def __init__(self, log_level=log.INFO):
