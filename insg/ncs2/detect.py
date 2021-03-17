@@ -10,7 +10,7 @@ class Detect(Engine):
 
     # todo cmd line arg to choose ini file
     def __init__(self, log_level=log.DEBUG):
-        super().__init__("Object detection benchmark", "v.2021.1.25", "detect.ini", log_level=log_level)
+        super().__init__("Object detection benchmark", version, "detect.ini", log_level=log_level)
 
     def main(self):
         stats = Stats()
