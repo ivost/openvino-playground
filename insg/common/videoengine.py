@@ -2,6 +2,7 @@ import logging as log
 import sys
 import tempfile
 import time
+import datetime
 from pathlib import Path
 
 import cv2
@@ -21,20 +22,25 @@ class VideoEngine:
         self.pipeline = None
         self.c = Config()
         self.c.read(config_ini)
-        # todo: config
-        width = 1920
-        height = 1080
-        size = (width, height)
 
-        # fourcc = cv2.VideoWriter_fourcc(*'MP4V')
-        # self.video_out = cv2.VideoWriter('debug.mp4', fourcc, 20.0, size)
+        inp = str(self.c.input.video)
+        log.debug(f"reading from {inp}")
+        cap = cv2.VideoCapture(inp)
+        ret, frame = cap.read()
+        shape = frame.shape
+        size = (shape[1], shape[0])
+        log.info("frame size", size)
+
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
         n = self.c.network
         self.blob = Config.existing_path(n.blob)
         self.labels = Config.existing_path(n.labels)
-        self.input = Config.existing_path(self.c.input.video)
-        assert os.path.exists(self.input)
+
+        # self.input = Config.existing_path(self.c.input.video)
+        self.input = self.c.input.video
+
+        # assert os.path.exists(self.input)
         self.labels = self.create_labels()
         tf = tempfile.NamedTemporaryFile(suffix=".avi")
         print(tf.name)
@@ -66,7 +72,7 @@ class VideoEngine:
         return
 
     def run_pipeline(self):
-        log.debug("Pipeline run")
+        log.info("Pipeline start")
         with dai.Device(self.pipeline) as device:
             # Start pipeline
             device.startPipeline()
@@ -114,19 +120,26 @@ class VideoEngine:
             assert os.path.exists(self.output_file)
             log.info(f"Output file is ready: {self.output_file}")
 
-        log.debug("Pipeline end")
+        log.info("Pipeline end")
 
     def _output_filename(self):
-        name = Path(self.input).resolve().name
-        assert len(name) > 0
-        if '.' in name:
-            el = name.split('.')
-            name = el[-2]
         dir = self.c.output.dir
         assert(os.path.isdir(dir))
         assert(os.path.exists(dir))
-        fname = f"{name}-{self.c.var.name}-{self.c.output.width}x{self.c.output.height}.{self.c.output.type}"
-        print(fname)
+
+        ts = datetime.datetime.now().isoformat(timespec='seconds')
+        ts = ts.replace(":", "-")
+        if str(self.input).startswith("rtsp:"):
+            name = f"rtsp"
+        else:
+            name = Path(self.input).resolve().name
+            assert len(name) > 0
+            if '.' in name:
+                el = name.split('.')
+                name = el[-2]
+
+        fname = f"{name}_{ts}_{self.c.var.name}_{self.c.output.width}x{self.c.output.height}.{self.c.output.type}"
+
         self.output_file = os.path.join(dir, fname)
         print(f"generate_output_file {self.input} -> {self.output_file}")
         return self.output_file

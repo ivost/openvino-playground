@@ -4,11 +4,13 @@ import sys
 
 from insg.common.videoengine import VideoEngine
 
+VERSION = "v.2021.3.18"
+
 
 class Detect(VideoEngine):
 
     def __init__(self):
-        super().__init__("Video object detection test", "v.2021.3.14")
+        super().__init__("Video object detection test", VERSION)
         self.configure()
 
     def configure(self):
