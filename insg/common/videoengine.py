@@ -1,14 +1,14 @@
+import datetime
 import logging as log
+import os.path
 import sys
 import tempfile
 import time
-import datetime
 from pathlib import Path
 
 import cv2
 import depthai as dai
 import numpy as np
-import os.path
 
 from insg.common import Config
 
@@ -27,29 +27,46 @@ class VideoEngine:
         log.debug(f"reading from {inp}")
         cap = cv2.VideoCapture(inp)
         ret, frame = cap.read()
+        if not ret:
+            log.error("Capture error")
+            raise EOFError("Capture error " + inp)
+
         shape = frame.shape
         size = (shape[1], shape[0])
-        log.info("frame size", size)
+        log.info(f"frame size {size}")
 
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
         n = self.c.network
         self.blob = Config.existing_path(n.blob)
         self.labels = Config.existing_path(n.labels)
+        self.confidence = float(self.c.network.confidence)
 
         # self.input = Config.existing_path(self.c.input.video)
         self.input = self.c.input.video
-
+        # todo: check for stream
         # assert os.path.exists(self.input)
         self.labels = self.create_labels()
+        self.exclusions= self.create_exclusions()
+
         tf = tempfile.NamedTemporaryFile(suffix=".avi")
-        print(tf.name)
         self.temp_video = tf.name
         self.output_file = self._output_filename()
         tf.close()
         log.debug(f"Creating VideoWriter: {self.temp_video}, {size}")
         self.video_out = cv2.VideoWriter(self.temp_video, fourcc, 20.0, size)
         return
+
+    def create_exclusions(self):
+        self.exclusions = []
+        if self.c.network.exclude:
+            for n in str(self.c.network.exclude).split(","):
+                ok, i = self.safe_label_index(n)
+                if ok:
+                    self.exclusions.append(i)
+
+        log.debug(f"exclusions: {self.exclusions}")
+        return self.exclusions
 
     def define_pipeline(self):
         # initialize engine
@@ -102,14 +119,22 @@ class VideoEngine:
                 if in_nn is None:
                     time.sleep(0.005)
                     continue
-                frame = self.process_results(in_nn, frame)
+                ok, frame2 = self.process_results(in_nn, frame)
                 if preview:
-                    cv2.imshow("rgb", frame)
+                    if ok:
+                        cv2.imshow("rgb", frame2)
+                    else:
+                        cv2.imshow("rgb", frame)
 
                 # aspect_ratio = self.frame.shape[1] / self.frame.shape[0]
                 # frame2 = cv2.resize(self.debug_frame, (int(900), int(900 / aspect_ratio)))
                 if self.video_out:
-                    self.video_out.write(frame)
+                    if ok:
+                        self.video_out.write(frame2)
+                    else:
+                        # self.video_out.write(frame)
+                        # ignore frames w/o results
+                        pass
 
             if self.video_out:
                 self.video_out.release()
@@ -121,11 +146,21 @@ class VideoEngine:
             log.info(f"Output file is ready: {self.output_file}")
 
         log.info("Pipeline end")
+        return
+
+    def safe_label_index(self, s: str) -> (bool, int):
+        max_index = len(self.labels)
+        try:
+            n = int(s)
+            if max_index > 0 and 0 <= n < max_index:
+                return True, n
+        except ValueError:
+            return False, 0
 
     def _output_filename(self):
         dir = self.c.output.dir
-        assert(os.path.isdir(dir))
-        assert(os.path.exists(dir))
+        assert (os.path.isdir(dir))
+        assert (os.path.exists(dir))
 
         ts = datetime.datetime.now().isoformat(timespec='seconds')
         ts = ts.replace(":", "-")
@@ -153,23 +188,36 @@ class VideoEngine:
         # transform the 1D array into Nx7 matrix
         bboxes = bboxes.reshape((bboxes.size // 7, 7))
         # filter out the results which confidence less than a defined threshold
-        bboxes = bboxes[bboxes[:, 2] > 0.5]
+        bboxes = bboxes[bboxes[:, 2] > self.confidence]
+        if len(bboxes) == 0:
+            return False, None
+
         # Cut bboxes and labels
         labels = bboxes[:, 1].astype(int)
         confidences = bboxes[:, 2]
         bboxes = bboxes[:, 3:7]
+        # log.info(f"process_results conf: {confidence}, {len(bboxes)} bboxes")
+        # todo: config
         color_bgr = (0, 250, 250)
         font = cv2.FONT_HERSHEY_TRIPLEX
-        font_size = 0.5
-        thickness = 2
+        font_size = 0.9
+        thickness = 4
+        count = 0
         for raw_bbox, label, conf in zip(bboxes, labels, confidences):
+            if label in self.exclusions:
+                continue
+            log.debug(f"conf: {conf}, label: {label} - {self.labels[label]}")
+            count += 1
             bbox = _frame_norm(frame, raw_bbox)
             cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color_bgr, thickness)
             cv2.putText(frame, self.labels[label], (bbox[0] + 10, bbox[1] + 20),
                         font, font_size, color_bgr)
             cv2.putText(frame, f"{int(conf * 100)}%", (bbox[0] + 10, bbox[1] + 40),
                         font, font_size, color_bgr)
-        return frame
+        if count:
+            return True, frame
+        else:
+            return False, None
 
     def _convert_to_mp4(self):
         import subprocess
